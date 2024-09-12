@@ -87,5 +87,148 @@ Switch#sh dir
     
 файл образа :  System image file is "flash:c2960-lanbasek9-mz.150-2.SE4.bin"
 
+# Часть 2. Настройка базовых параметров сетевых устройств
+### Шаг 1. Настройте базовые параметры коммутатора
+
+Выполнена базовая настройка коммутатора согласно методички. Команда login запрашивает пароль при подключении.
 
 
+### Шаг 2. Настройте IP-адрес на компьютере PC-A.
+
+Выполнена настройка ip адресации на PC-A
+
+# Часть 3. Проверка сетевых подключений
+### Шаг 1. Отобразите конфигурацию коммутатора.
+
+```
+S1#sh run
+Building configuration...
+
+Current configuration : 1392 bytes
+!
+version 15.0
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname S1
+!
+enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+!
+!
+!
+no ip domain-lookup
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+interface FastEthernet0/1
+!
+interface FastEthernet0/2
+!
+interface FastEthernet0/3
+!
+interface FastEthernet0/4
+!
+interface FastEthernet0/5
+!
+interface FastEthernet0/6
+!
+interface FastEthernet0/7
+!
+interface FastEthernet0/8
+!
+interface FastEthernet0/9
+!
+interface FastEthernet0/10
+!
+interface FastEthernet0/11
+!
+interface FastEthernet0/12
+!
+interface FastEthernet0/13
+!
+interface FastEthernet0/14
+!
+interface FastEthernet0/15
+!
+interface FastEthernet0/16
+!
+interface FastEthernet0/17
+!
+interface FastEthernet0/18
+!
+interface FastEthernet0/19
+!
+interface FastEthernet0/20
+!
+interface FastEthernet0/21
+!
+interface FastEthernet0/22
+!
+interface FastEthernet0/23
+!
+interface FastEthernet0/24
+!
+interface GigabitEthernet0/1
+!
+interface GigabitEthernet0/2
+!
+interface Vlan1
+ ip address 192.168.1.2 255.255.255.0
+!
+ip default-gateway 192.68.1.1
+!
+banner motd ^C
+Unauthorized access is strictly prohibited. ^C
+!
+!
+!
+line con 0
+ password 7 0822455D0A16
+ logging synchronous
+ login
+!
+line vty 0 4
+ password 7 0822455D0A16
+ login
+ transport input telnet
+line vty 5 15
+ password 7 0822455D0A16
+ login
+!
+!
+!
+!
+end
+S1#
+```
+Выполнена проверка параметров Vlan. Полоса пробускания BW 100000 Kbit.
+
+# Шаг 2. Протестируйте сквозное соединение, отправив эхо-запрос.
+
+```
+C:\>ping 192.168.1.2
+
+Pinging 192.168.1.2 with 32 bytes of data:
+
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+Reply from 192.168.1.2: bytes=32 time=11ms TTL=255
+
+Ping statistics for 192.168.1.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+```
+
+# Шаг 3. Проверьте удаленное управление коммутатором S1
+
+С помощью Telnet выполнено удаленное подключение к коммутатору по адресу 192.168.1.2. Успешно.
+
+Для удаленного доступа необходима настройка пароля на vty линиях.
+
+Чтобы пароли не отправлялись в незашифрованном виде необходима настройка SSH соединения.

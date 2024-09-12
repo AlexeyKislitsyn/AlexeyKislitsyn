@@ -1,4 +1,4 @@
-# Лабораторная работа. Базовая настрока коммутатора
+# Лабораторная работа. Базовая настройка коммутатора
 
 ### Топология
 ![](1.png)
@@ -20,4 +20,62 @@
    Switch#erase startup-config. 
    Switch#reload
  ```
-# b.Изучите текущий файл running configuration
+  b. Изучите текущий файл running configuration
+   Имеем: 24 интерфейса FastEthernet, 2 интерфейса GigabitEthernet
+   диапазон значений, отображаемых в vty-линиях: 0-4, 5-15
+   
+  с. Изучите файл загрузочной конфигурации (startup configuration) 
+  ``` 
+   Switch#sh startup-config 
+   startup-config is not present
+  ``` 
+   Данное сообщение говорит о том, что еще не производилась запись конфига в  startup-config 
+   
+   d. Изучите характеристики SVI для VLAN 1.
+   ```
+    Switch#sh int vlan 1
+   ``` 
+    ip для VLAN 1 еще не назначен
+    mac vlan 1 :  0010.11e9.703b
+    интерфейс отключен:  Vlan1 is administratively down, line protocol is down
+
+   e. Изучите IP-свойства интерфейса SVI сети VLAN 1
+   ```
+    Switch#sh ip int vlan 1
+   ```
+   f.
+
+   g. Изучите сведения о версии ОС Cisco IOS на коммутаторе.
+    ```
+    Switch#sh ver
+    Switch#sh flash:
+   ```
+    Cisco IOS  :  C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE4
+    файл образа :  System image file is "flash:c2960-lanbasek9-mz.150-2.SE4.bin"
+
+   h. Изучите свойства по умолчанию интерфейса FastEthernet, который используется компьютером PC-A.
+   ```
+    Switch#sh int fast 0/6
+   ```
+     по умолчанию интерфейс в down : FastEthernet0/6 is down, line protocol is down (disabled)
+     включить интерфейс: Switch(config-if)# no shutdown 
+     mac 0001.4333.4506
+     Full-duplex, 100Mb/s
+
+    i. Изучите флеш-память.
+    ```
+    Switch#flash:
+    Switch#sh dir
+    ```
+     файл образа :  System image file is "flash:c2960-lanbasek9-mz.150-2.SE4.bin"
+
+# Часть 2. Настройка базовых параметров сетевых устройств
+### Шаг 1. Настройте базовые параметры коммутатора
+
+     Выполнена базовая настройка коммутатора согласно методички
+     команда login зарашивает пароль при подключении
+
+
+### Шаг 2. Настройте IP-адрес на компьютере PC-A.
+     Выполнена настройка ip адресации на PC-A
+   

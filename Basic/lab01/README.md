@@ -43,8 +43,6 @@
    ```
     Switch#sh ip int vlan 1
    ```
-   f.
-
    g. Изучите сведения о версии ОС Cisco IOS на коммутаторе.
     ```
     Switch#sh ver

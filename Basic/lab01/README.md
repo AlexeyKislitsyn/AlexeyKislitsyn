@@ -33,7 +33,7 @@
    
    d. Изучите характеристики SVI для VLAN 1.
    ```
-    Switch#sh int vlan 1
+Switch#sh int vlan 1
    ``` 
     ip для VLAN 1 еще не назначен
     mac vlan 1 :  0010.11e9.703b

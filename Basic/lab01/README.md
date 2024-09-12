@@ -29,7 +29,7 @@
    Switch#sh startup-config 
    startup-config is not present
   ```
-```
+
    Данное сообщение говорит о том, что еще не производилась запись конфига в  startup-config 
    
    d. Изучите характеристики SVI для VLAN 1

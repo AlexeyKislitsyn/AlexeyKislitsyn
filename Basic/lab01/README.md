@@ -32,9 +32,9 @@
    Данное сообщение говорит о том, что еще не производилась запись конфига в  startup-config 
    
    d. Изучите характеристики SVI для VLAN 1.
-    
+   ``` 
     Switch#sh int vlan 1
-    
+   ``` 
     ip для VLAN 1 еще не назначен
     mac vlan 1 :  0010.11e9.703b
     интерфейс отключен:  Vlan1 is administratively down, line protocol is down

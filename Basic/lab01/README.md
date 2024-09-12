@@ -36,5 +36,5 @@
 ```
     Switch#sh int vlan 1
 ```
-  
+  ip для VLAN 1 еще не назначен
 

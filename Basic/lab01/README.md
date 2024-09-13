@@ -165,7 +165,7 @@ S1(config)#banner motd "Unauthorized access is strictly prohibited."
 
 Выполнена настройка ip адресации на PC-A согласно методички. В PT вкладка desctop-ip configuration
 
-![](pc0.png)
+![](pc01.png)
 
 
 # Часть 3. Проверка сетевых подключений

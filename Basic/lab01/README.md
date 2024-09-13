@@ -56,7 +56,7 @@ Switch#sh ip int vlan 1
 Интерфейс down: Vlan1 is administratively down, line protocol is down
   Internet protocol processing disabled
 
-f. Выполнено подклюение PC0 к порту коммутатора FastEthernet0/6. Смотрим порт:
+f. Выполнено подключение PC0 к порту коммутатора FastEthernet0/6. Смотрим порт:
 
 После согласования параметров порт в UP
 

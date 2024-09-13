@@ -18,7 +18,7 @@ a. Просмотр show runnin-cinfig. Для полноты сбросим к 
 ```
 Switch# show flash
 Switch# delete vlan.dat
-Switch#erase startup-config. 
+Switch#erase startup-config
 Switch#reload
 ```
 b. Изучите текущий файл running configuration.
@@ -38,7 +38,7 @@ startup-config is not present
    
 d. Изучите характеристики SVI для VLAN 1.
 ```
-Switch#sh int vlan 1.
+Switch#sh int vlan 1
 ```
 
 ip для VLAN 1 еще не назначен.
@@ -52,6 +52,17 @@ e. Изучите IP-свойства интерфейса SVI сети VLAN 1.
 ```
 Switch#sh ip int vlan 1
 ```
+
+Интерфейс down: Vlan1 is administratively down, line protocol is down
+  Internet protocol processing disabled
+
+f. Выполнено подклюение PC0 к порту коммутатора FastEthernet0/6. Смотрим порт:
+
+После согласования параметров порт в UP
+
+FastEthernet0/6 is up, line protocol is up (connected)
+Full-duplex, 100Mb/s
+и дополнительно много других параметров.
 
 g. Изучите сведения о версии ОС Cisco IOS на коммутаторе.
 
@@ -135,12 +146,19 @@ S1(config)#service password-encryption
 ```
 S1(config)#interface vlan 1
 S1(config-if)#ip address 192.168.1.2 255.255.255.0
+S1(config-if)no shut
 ```
 
-7. Настроим шлюз по умолчанию для выхода в другие сети (опционально, при наличии маршрутизатора)
+7. Настроим шлюз по умолчанию для возможности удаленного к коммутатру из других сетей (опционально, при наличии маршрутизатора)
 
 ```
 S1(config)#ip default-gateway 192.68.1.1
+```
+
+8. Настроим баннер:
+
+```
+S1(config)#banner motd "Unauthorized access is strictly prohibited."
 ```
 
 ### Шаг 2. Настройте IP-адрес на компьютере PC-A.
@@ -154,10 +172,13 @@ S1(config)#ip default-gateway 192.68.1.1
 ### Шаг 1. Отобразите конфигурацию коммутатора.
 
 ```
-S1#sh run
+S1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+S1# sh run
 Building configuration...
 
-Current configuration : 1392 bytes
+Current configuration : 1390 bytes
 !
 version 15.0
 no service timestamps log datetime msec
@@ -166,7 +187,7 @@ service password-encryption
 !
 hostname S1
 !
-enable secret 5 $1$mERr$9cTjUIEqNGurQiFU.ZeCi1
+enable secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
 !
 !
 !
@@ -234,13 +255,12 @@ interface Vlan1
 !
 ip default-gateway 192.68.1.1
 !
-banner motd ^C
-Unauthorized access is strictly prohibited. ^C
+banner motd ^CUnauthorized access is strictly prohibited.^C
 !
 !
 !
 line con 0
- password 7 0822455D0A16
+ password 7 0822404F1A0A
  logging synchronous
  login
 !
@@ -249,20 +269,21 @@ line vty 0 4
  login
  transport input telnet
 line vty 5 15
- password 7 0822455D0A16
  login
 !
 !
 !
-!
 end
+
+
 S1#
 ```
-Выполнена проверка параметров Vlan. Полоса пробускания BW 100000 Kbit.
+Выполнена проверка параметров Vlan. Полоса пропускания BW 100000 Kbit.
 
 # Шаг 2. Протестируйте сквозное соединение, отправив эхо-запрос.
 
 ```
+проверка доступности коммутатора
 C:\>ping 192.168.1.2
 
 Pinging 192.168.1.2 with 32 bytes of data:
@@ -276,11 +297,33 @@ Ping statistics for 192.168.1.2:
     Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
 Approximate round trip times in milli-seconds:
     Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+Проверка доступности ПК с коммутатора:
+
+S1# ping 192.168.1.10
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.10, timeout is 2 seconds:
+!!!!!
+Success rate is 80 percent (4/5), round-trip min/avg/max = 0/4/16 ms
 ```
 
 # Шаг 3. Проверьте удаленное управление коммутатором S1
 
-С помощью Telnet выполнено удаленное подключение к коммутатору по адресу 192.168.1.2. Успешно.
+С помощью Telnet выполнено удаленное подключение к коммутатору по адресу 192.168.1.2. В PT вкладка Desctop-Command Prompt ( командная строка: подключение telnet 192.168.1.2), либо же вкладка Desctop - Telnet/SSH (можно подключаться как по Telnet так и по SSH, если есть дополнительные настройки SSH на коммутаторе). Desctop - Telnet/SSH эмулирует подключение таких программ как: Putty, Terra Term и др. В данном случае было использовано удаленное подключение к коммутатору в терминале командной строки:
+
+```
+C:\>telnet 192.168.1.2
+Trying 192.168.1.2 ...OpenUnauthorized access is strictly prohibited.
+
+
+User Access Verification
+
+Password: 
+S1>en
+Password: 
+S1#
+```
 
 Для удаленного доступа необходима настройка пароля на vty линиях.
 

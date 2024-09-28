@@ -17,7 +17,8 @@
 
 ### Часть 1. Настройка топологии и конфигурация основных параметров маршрутизатора и коммутатора
 
-В CPT создана лаоратория:
+В CPT создана лаборатория:
+
 ![](1.png)
 
 ### Шаг 1.  Настройте маршрутизатор.
@@ -153,6 +154,70 @@ Joined group address(es) - группы многоадрессной рассы�
 
 ### Шаг 2. Активируйте IPv6-маршрутизацию на R1.
 
-Часть 3. Проверка сквозного соединения
+На ПК PC-B введем команду ipconfig /all:
 
+![](pc-b_1.png)
+
+Здесь видно, что нидивидуальный ipv6 адрес еще не назначен, есть только link-local адрес.
+
+Активируем IPv6-маршрутизацию на R1 с помощью команды IPv6 unicast-routing:
+
+```
+R1#conf t
+R1(config)#ipv6 unicast-routing 
+R1(config)#
+```
+
+На PC-B в сетевых настройках установим ipv6 configuration - Automatic
+
+![](pc-b_1.png)
+
+C помощью функции SLAAC мы получили ipv6 адрес и шлюз по умолчанию. 
+
+### Шаг 3. Назначьте IPv6-адреса интерфейсу управления (SVI) на S1.
+
+Чтобы установить шаблон dual-ipv4-and-ipv6 в качестве шаблона SDM по умолчанию, выполним следующие действия:
+
+```
+S1#conf t
+S1(config)# sdm prefer dual-ipv4-and-ipv6 default
+S1(config)# end
+S1# reload
+```
+
+Назначим ipv6 адрес и link-local адрес на SVI: 
+
+```
+S1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#int vlan 1
+S1(config-if)#ipv
+S1(config-if)#ipv6 add
+S1(config-if)#ipv6 address 2001:db8:acad:1::b/64
+S1(config-if)#ipv6 address fe80::b lin
+S1(config-if)#ipv6 address fe80::b link-local
+S1(config-if)#no shutdown 
+```
+
+Проверим правильность введнных адресов:
+
+```
+S1#sh ipv6 int vlan 1
+Vlan1 is up, line protocol is up
+  IPv6 is enabled, link-local address is FE80::B
+  No Virtual link-local address(es):
+  Global unicast address(es):
+    2001:DB8:ACAD:1::B, subnet is 2001:DB8:ACAD:1::/64
+  Joined group address(es):
+    FF02::1
+    FF02::1:FF00:B
+  MTU is 1500 bytes
+  ICMP error messages limited to one every 100 milliseconds
+  ICMP redirects are enabled
+  ICMP unreachables are sent
+  Output features: Check hwidb
+  ND DAD is enabled, number of DAD attempts: 1
+  ND reachable time is 30000 milliseconds
+S1#
+```
 

@@ -229,3 +229,105 @@ PC-A
 PC-B
 
 ![](pc-b_static.png)
+
+Таким образом мы имеем на адреса: статический и link-local. 
+
+### Часть 3. Проверка сквозного подключения
+
+С PC-A отправьте эхо-запрос на FE80::1. Это локальный адрес канала, назначенный G0/1 на R1.
+
+```
+C:\>ping  fe80::1
+
+Pinging fe80::1 with 32 bytes of data:
+
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+
+Ping statistics for FE80::1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+```
+
+Отправьте эхо-запрос на интерфейс управления S1 с PC-A.
+
+```
+C:\>ping  2001:db8:acad:1::b
+
+Pinging 2001:db8:acad:1::b with 32 bytes of data:
+
+Reply from 2001:DB8:ACAD:1::B: bytes=32 time<1ms TTL=255
+Reply from 2001:DB8:ACAD:1::B: bytes=32 time<1ms TTL=255
+Reply from 2001:DB8:ACAD:1::B: bytes=32 time<1ms TTL=255
+Reply from 2001:DB8:ACAD:1::B: bytes=32 time<1ms TTL=255
+
+Ping statistics for 2001:DB8:ACAD:1::B:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+```
+
+Введите команду tracert на PC-A, чтобы проверить наличие сквозного подключения к PC-B.
+
+```
+C:\>tracert 2001:db8:acad:a::3
+
+Tracing route to 2001:db8:acad:a::3 over a maximum of 30 hops: 
+
+  1   0 ms      0 ms      0 ms      2001:DB8:ACAD:1::1
+  2   0 ms      0 ms      0 ms      2001:DB8:ACAD:A::3
+
+Trace complete.
+
+C:\>
+```
+
+С PC-B отправьте эхо-запрос на PC-A.
+
+```
+C:\>ping 2001:db8:acad:1::3
+
+Pinging 2001:db8:acad:1::3 with 32 bytes of data:
+
+Reply from 2001:DB8:ACAD:1::3: bytes=32 time<1ms TTL=127
+Reply from 2001:DB8:ACAD:1::3: bytes=32 time<1ms TTL=127
+Reply from 2001:DB8:ACAD:1::3: bytes=32 time<1ms TTL=127
+Reply from 2001:DB8:ACAD:1::3: bytes=32 time<1ms TTL=127
+
+Ping statistics for 2001:DB8:ACAD:1::3:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+```
+
+С PC-B отправьте эхо-запрос на локальный адрес канала G0/0/0 на R1.
+
+```
+C:\>ping fe80::1
+
+Pinging fe80::1 with 32 bytes of data:
+
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+Reply from FE80::1: bytes=32 time<1ms TTL=255
+
+Ping statistics for FE80::1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+```
+
+Обоим интерфейсам Ethernet на R1 можно назначить один и тот же локальный адрес канала — FE80::1, т.к данный адрес не маршрутизируется, т.е никогда не выходят за пределы сети.
+Идентификатор подсети в адресе 2001:db8:acad::aaaa:1234/64  -  2001:db8:acad:0000.

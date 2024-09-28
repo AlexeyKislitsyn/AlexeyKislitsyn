@@ -72,7 +72,6 @@ S1(config)#do wr
 ```
 R1#conf t
 R1(config)#int g 0/0/0
-R1(config-if)#ipv6 add
 R1(config-if)#ipv6 address 2001:db8:acad:a::1/64 
 R1(config-if)#no sh
 %LINK-5-CHANGED: Interface GigabitEthernet0/0/0, changed state to up
@@ -230,11 +229,11 @@ PC-B
 
 ![](pc-b_static.png)
 
-Таким образом мы имеем на адреса: статический и link-local. 
+Таким образом мы имеем адреса: статический и link-local. 
 
 ### Часть 3. Проверка сквозного подключения
 
-С PC-A отправьте эхо-запрос на FE80::1. Это локальный адрес канала, назначенный G0/1 на R1.
+С PC-A отправьте эхо-запрос на FE80::1. Это локальный адрес канала, назначенный G0/0/1 на R1.
 
 ```
 C:\>ping  fe80::1

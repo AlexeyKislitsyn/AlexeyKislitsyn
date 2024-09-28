@@ -170,7 +170,7 @@ R1(config)#
 
 На PC-B в сетевых настройках установим ipv6 configuration - Automatic
 
-![](pc-b_1.png)
+![](pc-b_2.png)
 
 C помощью функции SLAAC мы получили ipv6 адрес и шлюз по умолчанию. 
 
@@ -191,10 +191,7 @@ S1# reload
 S1#conf t
 Enter configuration commands, one per line.  End with CNTL/Z.
 S1(config)#int vlan 1
-S1(config-if)#ipv
-S1(config-if)#ipv6 add
 S1(config-if)#ipv6 address 2001:db8:acad:1::b/64
-S1(config-if)#ipv6 address fe80::b lin
 S1(config-if)#ipv6 address fe80::b link-local
 S1(config-if)#no shutdown 
 ```

@@ -316,7 +316,7 @@ S1(config-if)#switchport trunk native vlan 1000
 S1(config-if)#switchport trunk allowed vlan 10,20,30,1000
 ```
 
-Аналогичная настройка ббудет на S1. 
+Аналогичная настройка будет на S2. 
 
 
 Далее проверим транки, native VLAN и разрешенные VLAN через транк.
@@ -359,14 +359,14 @@ Fa0/1       10,20,30,1000
 S2#
 ```
 
-### Шаг 2. Вручную настроем магистральный интерфейс F0/5 на коммутаторе S1.
+### Шаг 2. Вручную настроим магистральный интерфейс F0/5 на коммутаторе S1.
 
 Настроим транк до маршрутизатора:
 
 ```
 S1(config)#int f 0/5
 S1(config-if)#switchport mode trunk                                       ^
-S1(config-if)#switchport trunk allowed vlan 10,20,30,1000t
+S1(config-if)#switchport trunk allowed vlan 10,20,30,1000
 S1(config-if)#switchport trunk native vlan 1000
 S1(config-if)#do copy run start
 ```
@@ -456,7 +456,7 @@ R1(config-subif)#int g 0/0/1.1000
 R1(config-subif)#encapsulation dot1Q 1000 native 
 ```
 
-Полерим настройки саб интерфейсов:
+Проверим настройки саб интерфейсов:
 
 ```
 R1#sh ip int brief 

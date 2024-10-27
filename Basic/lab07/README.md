@@ -64,30 +64,35 @@ S2, S3 - Аналогичная настройка, исключением яв�
 
 эхо-запрос от коммутатора S1 на коммутатор S2:
 
-
+```
 S1#ping 192.168.1.2
 
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 192.168.1.2, timeout is 2 seconds:
 !!!!!
 Success rate is 100 percent (5/5), round-trip min/avg/max = 0/1/9 ms
+```
 
 эхо-запрос от коммутатора S1 на коммутатор S3:
 
+```
 S1#ping 192.168.1.3
 
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 192.168.1.3, timeout is 2 seconds:
 !!!!!
 Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+```
 
 эхо-запрос от коммутатора S2 на коммутатор S3:
 
+```
 S2#ping 192.168.1.3
 
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 192.168.1.3, timeout is 2 seconds:
 !!!!!
 Success rate is 100 percent (5/5), round-trip min/avg/max = 5/5/5 ms
+```
 
 ### Шаг 2. Базовая настройка маршрутизатора.

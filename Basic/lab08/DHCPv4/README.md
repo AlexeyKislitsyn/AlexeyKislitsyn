@@ -193,4 +193,5 @@ R1(config)#ip dhcp pool R2_DHCP_CLIENT
 R1(dhcp-config)#network 192.168.1.96 255.255.255.240
 R1(dhcp-config)#domain-name test.ru
 R1(dhcp-config)#default-router 192.168.1.97
+R1(dhcp-config)#lease 2:12:30
 ```

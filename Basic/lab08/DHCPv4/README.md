@@ -36,7 +36,7 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 | R2          | G0/0/0      | 10.0.0.2            | 255.255.255.252| -                 | 
 | R2          | G0/0/1      | 192.168.1.97        | 255.255.255.240| -                 | 
 | S1          | VLAN 200    | 192.168.1.66        | 255.255.255.224| 192.168.1.65      | 
-| S2          | VLAN 1      |                     |                |                   | 
+| S2          | VLAN 1      | 192.168.1.98        | 255.255.255.240| 192.168.1.97      | 
 |PC-A         | NIC         | DHCP                |  DHCP          |  DHCP             |
 |PC-B         | NIC         | DHCP                |  DHCP          |  DHCP             |
 
@@ -174,7 +174,7 @@ S2(config)#int f 0/18
 S2(config-if)#switchport mode access
 ```
 
-### Часть 2.	Настройка и проверка двух серверов DHCPv4 на R1\
+### Часть 2.	Настройка и проверка двух серверов DHCPv4 на R1.
 
 Необходимо настроить и проверить сервер DHCPv4 на R1. Сервер DHCPv4 будет обслуживать две подсети, Подсеть A - 192.168.1.0 255.255.255.192 и Подсеть C: 192.168.1.96 255.255.255.240.
 
@@ -194,4 +194,120 @@ R1(dhcp-config)#network 192.168.1.96 255.255.255.240
 R1(dhcp-config)#domain-name test.ru
 R1(dhcp-config)#default-router 192.168.1.97
 R1(dhcp-config)#lease 2:12:30
+```
+
+### Часть 3.	Настройка и проверка DHCP-ретрансляции на R2
+
+Выполним настройку R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1
+
+```
+R2(config)#int g0/0/1
+R2(config-if)#ip helper-address 10.0.0.1
+```
+
+### Часть 4.	Проверка выдачи ip адресов для двух сетей.
+
+установим в настройка PC-A и PC-B автоматиеское получение ip адреса
+
+PC-A:
+
+```
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: test.ru
+   Physical Address................: 0010.114A.B9B6
+   Link-local IPv6 Address.........: FE80::210:11FF:FE4A:B9B6
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.6
+   Subnet Mask.....................: 255.255.255.192
+   Default Gateway.................: ::
+                                     192.168.1.1
+   DHCP Servers....................: 192.168.1.1
+   DHCPv6 IAID.....................: 
+   DHCPv6 Client DUID..............: 00-01-00-01-6D-B0-28-E0-00-10-11-4A-B9-B6
+   DNS Servers.....................: ::
+                                     0.0.0.0
+```
+
+PC-B:
+
+```
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: test.ru
+   Physical Address................: 0000.0C93.96AA
+   Link-local IPv6 Address.........: FE80::200:CFF:FE93:96AA
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.102
+   Subnet Mask.....................: 255.255.255.240
+   Default Gateway.................: ::
+                                     192.168.1.97
+   DHCP Servers....................: 10.0.0.1
+   DHCPv6 IAID.....................: 
+   DHCPv6 Client DUID..............: 00-01-00-01-24-AA-C2-BC-00-00-0C-93-96-AA
+   DNS Servers.....................: ::
+                                     0.0.0.0
+```
+проверим ip связанность:
+
+```
+C:\> ping 192.168.1.6
+
+Pinging 192.168.1.6 with 32 bytes of data:
+
+Request timed out.
+Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
+Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
+Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
+
+Ping statistics for 192.168.1.6:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+```
+
+посмотрим сведения о пулах:
+
+```
+R1#sh ip dhcp pool 
+
+Pool R1_DHCP_CLIENT :
+ Utilization mark (high/low)    : 100 / 0
+ Subnet size (first/next)       : 0 / 0 
+ Total addresses                : 62
+ Leased addresses               : 1
+ Excluded addresses             : 2
+ Pending event                  : none
+
+ 1 subnet is currently in the pool
+ Current index        IP address range                    Leased/Excluded/Total
+ 192.168.1.1          192.168.1.1      - 192.168.1.62      1    / 2     / 62
+
+Pool R2_DHCP_CLIENT :
+ Utilization mark (high/low)    : 100 / 0
+ Subnet size (first/next)       : 0 / 0 
+ Total addresses                : 14
+ Leased addresses               : 1
+ Excluded addresses             : 2
+ Pending event                  : none
+
+ 1 subnet is currently in the pool
+ Current index        IP address range                    Leased/Excluded/Total
+ 192.168.1.97         192.168.1.97     - 192.168.1.110     1    / 2     / 14
+R1#
+```
+
+посмотрим назанченные ip адреса:
+
+```
+R1#sh ip dhcp binding 
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.1.6      0010.114A.B9B6           --                     Automatic
+192.168.1.102    0000.0C93.96AA           --                     Automatic
+R1#
 ```

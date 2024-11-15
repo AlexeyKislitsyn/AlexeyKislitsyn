@@ -109,7 +109,7 @@ Sending 5, 100-byte ICMP Echos to 10.0.0.2, timeout is 2 seconds:
 Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
 ```
 
-### Шаг 4. Настройка коммутаторв S1.
+### Шаг 4. Настройка коммутатора S1.
 
 Создадим vlan:
 

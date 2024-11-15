@@ -1,2 +1,2 @@
-- [1 - Реализация DHCPv4](DHCPv4/).
-- [2 - Реализация DHCPv6 ](DHCPv6/).
+- [1 - Реализация DHCPv4](DHCPv4/README.md).
+- [2 - Реализация DHCPv6 ](DHCPv6/README.md).

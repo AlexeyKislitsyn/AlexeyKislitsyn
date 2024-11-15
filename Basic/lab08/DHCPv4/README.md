@@ -128,7 +128,7 @@ S1(config-vlan)#name native
 
 ```
 S1(config)#int vlan 200
-S1(config-if)#ip address 192.168.1.66 255.255.255.224a
+S1(config-if)#ip address 192.168.1.66 255.255.255.224
 S1(config)#ip default-gateway 192.168.1.65
 ```
 

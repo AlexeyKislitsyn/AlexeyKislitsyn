@@ -89,7 +89,6 @@ R1(config)#ip route 192.168.1.96 255.255.255.240 10.0.0.2
 
 ```
 R2(config)#int g 0/0/0
-R2(config-if)#ip adddress 10.0.0.2 255.255.255.252
 R2(config-if)#ip address 10.0.0.2 255.255.255.252
 R2(config-if)#no shutdown 
 R2(config-if)#int g 0/0/1

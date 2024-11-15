@@ -4,6 +4,8 @@
 
 ![](dhcpv4.png)
 
+### Часть 1. Создание сети и настройка основных параметров устройства
+
 ### Шаг 1. Создание схемы адресации.
 
 Разделим подсети сети 192.168.1.0/24 в соответствии со следующими требованиями:
@@ -110,6 +112,85 @@ Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
 
 ### Шаг 4. Настройка коммутаторв S1.
 
+Создадим vlan:
 
+```
+S1(config-if)#vlan 100
+S1(config-vlan)#name users
+S1(config-vlan)#vlan 200
+S1(config-vlan)#name management
+S1(config-vlan)#vlan 999
+S1(config-vlan)#name parking_lot
+S1(config-vlan)#vlan 1000
+S1(config-vlan)#name native
+```
 
-d.	Назначьте все неиспользуемые порты S1 VLAN Parking_Lot, настройте их для статического режима доступа и административно деактивируйте их. На S2 административно деактивируйте все неиспользуемые порты
+настроим svi управления и шлюз по умолчанию:
+
+```
+S1(config)#int vlan 200
+S1(config-if)#ip address 192.168.1.66 255.255.255.224a
+S1(config)#ip default-gateway 192.168.1.65
+```
+
+настроим транковый порт в сторону маршрутизатора R1:
+
+```
+S1(config)#int f 0/5
+S1(config-if)#switchport mode trunk 
+S1(config-if)#switchport trunk native vlan 1000
+S1(config-if)#switchport trunk allowed vlan 100,200,1000
+```
+
+Назначим все неиспользуемые порты S1 в VLAN Parking_Lot и административно деактивируем их.
+
+```
+S1(config)#int range f 0/1-4 , f0/7-24 , g0/1-2
+S1(config-if-range)#switchport mode access 
+S1(config-if-range)#switchport access vlan 999
+S1(config-if-range)#switchport nonegotiate 
+S1(config-if-range)#shutdown 
+```
+
+назначим порт коммутатора f 0/6 в vlan 100 (users vlan) 
+
+```
+S1(config)#int f 0/6
+S1(config-if)#switchport mode access 
+S1(config-if)#switchport access vlan 100
+```
+
+если бы РС-А был подключен к сети с помощью DHCP, то мы бы полуили адрес из сети 169.254.0.0/16, т.к DHCP сервер у нас еще не настроен.
+
+### Шаг 4. Настройка коммутаторв S2.
+
+```
+S2(config)#int vlan 1
+S2(config-if)#ip address 192.168.1.98 255.255.255.240
+S2(config)#ip default-gateway 192.168.1.97
+S2(config)#int range f 0/1-4, f 0/6-17, f 0/19-24, g 0/1-2
+S2(config-if-range)#shutdown 
+S2(config)#int f 0/18
+S2(config-if)#switchport mode access
+```
+
+### Часть 2.	Настройка и проверка двух серверов DHCPv4 на R1\
+
+Необходимо настроить и проверить сервер DHCPv4 на R1. Сервер DHCPv4 будет обслуживать две подсети, Подсеть A - 192.168.1.0 255.255.255.192 и Подсеть C: 192.168.1.96 255.255.255.240.
+
+Исключим первые пять используемых адресов из каждого пула адресов, создадим пул DHCP, укажим сеть, поддерживающую этот DHCP-сервер, в качестве имени домена укажим test.ru, настроим соответствующий шлюз по умолчанию для каждого пула DHCP, настроим время аренды на 2 дня 12 часов и 30 минут
+
+```
+R1(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.5
+R1(config)#ip dhcp pool R1_DHCP_CLIENT
+R1(dhcp-config)#network 192.168.1.0 255.255.255.192
+R1(dhcp-config)#domain-name test.ru
+R1(dhcp-config)#default-router 192.168.1.1
+R1(dhcp-config)#lease 2:12:30
+
+R1(config)#ip dhcp excluded-address 192.168.1.97 192.168.1.101
+R1(config)#ip dhcp pool R2_DHCP_CLIENT
+R1(dhcp-config)#network 192.168.1.96 255.255.255.240
+R1(dhcp-config)#domain-name test.ru
+R1(dhcp-config)#default-router 192.168.1.97
+```

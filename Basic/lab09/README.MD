@@ -117,7 +117,7 @@ S2(config-if)#ip address 192.168.10.202 255.255.255.0
 
 ### Шаг 2. Настройка маршрутизатора R1.
 
-1. Настроим саб интерфейсы 2. Настроим dhcp пул для абонентов vlan 20 3. Укажем довверенный порт, за которым находится dhcp сервер 
+1. Настроим саб интерфейсы 2. Настроим dhcp пул для абонентов vlan 20 3. Укажем доверенный порт, за которым находится dhcp сервер 
 
 R1(config)#ip dhcp excluded-address 192.168.20.1 
 R1(config)#ip dhcp pool students
@@ -147,11 +147,46 @@ R1#
 
 ### Шаг 3. Реализовать безопасность DHCP snooping.
 
+Настроим DHCP snooping в VLAN 20 и укажем магистральный порт g 3/2 на S2 как доверенный.
+
 S2(config)#ip dhcp snooping 
 S2(config)#ip dhcp snooping vlan 20
 S2(config)#int g 3/2                              
 S2(config-if)#ip dhcp snooping trust 
 
+Ограничим ненадежный порт g0/0 на S2 пятью DHCP-пакетами в секунду.
+
+S2(config)#int  g0/0
+S2(config-if)#ip dhcp snooping limit rate 5
+
+Проверим DHCP Snooping на S2:
+
+S2#sh ip dhcp snooping 
+Switch DHCP snooping is enabled
+Switch DHCP gleaning is disabled
+DHCP snooping is configured on following VLANs:
+20
+DHCP snooping is operational on following VLANs:
+20
+DHCP snooping is configured on the following L3 Interfaces:
+
+Insertion of option 82 is enabled
+   circuit-id default format: vlan-mod-port
+   remote-id: 0c3d.1fa0.0000 (MAC)
+Option 82 on untrusted port is not allowed
+Verification of hwaddr field is enabled
+Verification of giaddr field is enabled
+DHCP snooping trust/rate is configured on the following Interfaces:
+
+Interface                  Trusted    Allow option    Rate limit (pps)
+-----------------------    -------    ------------    ----------------   
+GigabitEthernet0/0         no         no              5         
+  Custom circuit-ids:
+GigabitEthernet3/2         yes        yes             unlimited
+  Custom circuit-ids:
+S2#
+
+Проверим привязку отслеживания DHCP:
 
 S2#sh ip dhcp snooping binding 
 MacAddress          IpAddress        Lease(sec)  Type           VLAN  Interface

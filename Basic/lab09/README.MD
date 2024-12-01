@@ -32,7 +32,7 @@
 
 На коммутаторе S1 и S2 настроим: 1. vlan (пользовательский и управления), native vlan, svi 2. Настроим шлюз по умолчанию 3. Переведем магистральные порты в режим транка, настроим native vlan 4.На всех access портах оключим DTP 5. Неиспользуемые порты административно отключим и назначим их в 999 vlan 5. порты коммутатора куда подключены ПК, назначим в пользовательский vlan 20.
 
----
+```
 S1(config)#no ip domain-lookup
 S1(config)#vlan 10
 S1(config-vlan)#name management
@@ -107,21 +107,21 @@ Port        Vlans in spanning tree forwarding state and not pruned
 Gi0/0       10,20,333
 Gi3/2       10,20,333
 S1#
----
+```
 
 Аналогичная настройка для S2: 
 исключение
 
----
+```
 S2(config)#int vlan 10
 S2(config-if)#ip address 192.168.10.202 255.255.255.0
----
+```
 
 ### Шаг 2. Настройка маршрутизатора R1.
 
 1. Настроим саб интерфейсы 2. Настроим dhcp пул для абонентов vlan 20 3. Укажем доверенный порт, за которым находится dhcp сервер 
 
----
+```
 R1(config)#ip dhcp excluded-address 192.168.20.1 
 R1(config)#ip dhcp pool students
 R1(dhcp-config)#network 192.168.20.0 255.255.255.0    
@@ -136,11 +136,11 @@ R1(config-subif)#ip address 192.168.20.1 255.255.255.0
 R1(config-subif)#ip dhcp relay information trusted 
 R1(config-subif)#int f 0/0.333                                 
 R1(config-subif)#encapsulation dot1Q 333 native 
----
+```
 
 посмотрим, выделенные шз адреса
 
----
+```
 R1#sh ip dhcp binding 
 Bindings from all pools not associated with VRF:
 IP address          Client-ID/	 	    Lease expiration        Type
@@ -149,29 +149,29 @@ IP address          Client-ID/	 	    Lease expiration        Type
 192.168.20.2        0100.5079.6668.00       Mar 02 2002 01:31 AM    Automatic
 192.168.20.3        0100.5079.6668.01       Mar 02 2002 01:31 AM    Automatic
 R1#
----
+```
 
 ### Шаг 3. Реализовать безопасность DHCP snooping.
 
 Настроим DHCP snooping в VLAN 20 и укажем магистральный порт g 3/2 на S2 как доверенный.
 
----
+```
 S2(config)#ip dhcp snooping 
 S2(config)#ip dhcp snooping vlan 20
 S2(config)#int g 3/2                              
 S2(config-if)#ip dhcp snooping trust 
----
+```
 
 Ограничим ненадежный порт g0/0 на S2 пятью DHCP-пакетами в секунду.
 
----
+```
 S2(config)#int  g0/0
 S2(config-if)#ip dhcp snooping limit rate 5
----
+```
 
 Проверим DHCP Snooping на S2:
 
----
+```
 S2#sh ip dhcp snooping 
 Switch DHCP snooping is enabled
 Switch DHCP gleaning is disabled
@@ -196,16 +196,16 @@ GigabitEthernet0/0         no         no              5
 GigabitEthernet3/2         yes        yes             unlimited
   Custom circuit-ids:
 S2#
----
+```
 
 Проверим привязку отслеживания DHCP:
 
----
+```
 S2#sh ip dhcp snooping binding 
 MacAddress          IpAddress        Lease(sec)  Type           VLAN  Interface
 ------------------  ---------------  ----------  -------------  ----  --------------------
 00:50:79:66:68:01   192.168.20.3     86389       dhcp-snooping   20    GigabitEthernet0/0
 Total number of bindings: 1
 S2#
----
+```
 

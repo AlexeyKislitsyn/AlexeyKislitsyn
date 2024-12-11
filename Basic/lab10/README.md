@@ -142,7 +142,7 @@ R2#
 R1(config)#int e 0/0
 R1(config-if)#ip ospf hello-interval 30
 ```
-автоматически меняется Dead интервал на 120 сек (1 к 4):
+Автоматически меняется Dead интервал на 120 сек:
 
 ```
 R1(config-if)#do sh ip osp int e 0/0
@@ -262,7 +262,7 @@ R2#sh ip ospf | include band
  Reference bandwidth unit is 10 mbps
 R1#
 ```
-Проверим итоговое состояние таблицы маршрутизации: 
+* Проверим итоговое состояние таблицы маршрутизации: 
 
 ```
 R1# sh ip route

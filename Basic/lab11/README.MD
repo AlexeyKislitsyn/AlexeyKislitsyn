@@ -108,3 +108,6 @@ VLAN Name                             Status    Ports
 SW2#sh ip redirects 
 Default gateway is 10.20.0.1
 ```
+* Настроим на коммутаторах магистральные каналы:
+
+

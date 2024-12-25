@@ -192,9 +192,11 @@ Ethernet0/2                unassigned      YES unset  administratively down down
 Ethernet0/3                unassigned      YES unset  administratively down down    
 Loopback0                  172.16.1.1      YES manual up                    up      
 R1#
+```
 
 * Настроим саб интерфейсы на R2, и опишем маршрут по умолчанию (на R1):
 
+```
 R2(config)#int e 0/0.20
 R2(config-subif)#encapsulation dot1Q 20
 R2(config-subif)#ip address 10.20.0.4 255.255.255.0

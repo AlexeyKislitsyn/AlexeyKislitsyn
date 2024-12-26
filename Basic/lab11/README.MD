@@ -339,9 +339,8 @@ permit  ip any any
 
 * Linux2:
 
-![](linux2_3.png)
-![](linux2_4.png)
 ![](linux2_5.png)
+
 ![](linux2_6.png)
 
 ```

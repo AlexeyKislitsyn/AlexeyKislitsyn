@@ -263,7 +263,12 @@ R1(config)#ip http authentication local
 | Linux2 | SSH      | 10.20.0.1   | 
 | Linux2 | SSH      | 172.16.1.1  | 
 
+Linux1:
+
 ![](Linux1.png)
+
+Linux2
+
 ![](Linux2_1.png)
 ![](Linux2_2.png)
 

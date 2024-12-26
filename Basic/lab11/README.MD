@@ -346,6 +346,10 @@ permit  ip any any
 
 ![](linux2_6.png)
 
+
+
+Изучим статистику срабатывания правил:
+
 ```
 R1#sh access-lists 
 Extended IP access list Operatios
@@ -365,3 +369,4 @@ Extended IP access list Sales
 R1#
 
 ```
+Политики применены успешно.

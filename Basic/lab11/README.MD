@@ -270,6 +270,7 @@ R1(config)#ip http authentication local
 * Linux2
 
 ![](Linux2_1.png)
+
 ![](Linux2_2.png)
 
 Все тесты пройдены успешно
@@ -338,6 +339,8 @@ permit  ip any any
 ![](linux1_3.png)
 
 * Linux2:
+
+![](linux2_4.png)
 
 ![](linux2_5.png)
 

@@ -333,6 +333,16 @@ permit  ip any any
 | Linux2 | SSH      | 10.20.0.1   | сбой      |
 | Linux2 | SSH      | 172.16.1.1  | успех     |
 
+* Linux1:
+
+![](linux1_3.png)
+
+* Linux2:
+
+![](linux2_3.png)
+![](linux2_4.png)
+![](linux2_5.png)
+![](linux2_6.png)
 
 ```
 R1#sh access-lists 

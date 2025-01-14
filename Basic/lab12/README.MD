@@ -98,18 +98,18 @@ R1(config)# ip nat pool PUBLIC_ACCESS 209.165.200.226 209.165.200.228 netmask 25
 
 3. Настроим трансляцию адресов, связав ранее созданные ACL и пул адресов с процессом преобразования адресов:
 
-	```
+```
 R1(config)#ip nat inside source list LAN_TO_NAT pool PUBLIC_ACCESS 
-	```
+```
 
 4. Зададим внутренний и внешний интерфейсы:
 
-	```
-	R1(config)# int e0/1
-	R1(config-if)# ip nat inside
-	R1(config-if)# int e0/0
-	R1(config-if)# ip nat outside
-	```
+```
+R1(config)# int e0/1
+R1(config-if)# ip nat inside
+R1(config-if)# int e0/0
+R1(config-if)# ip nat outside
+```
 
 
 

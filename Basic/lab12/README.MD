@@ -267,7 +267,7 @@ R1(config)#no ip nat pool PUBLIC_ACCESS 209.165.200.226 209.165.200.228 netmask 
 3. Включим механизм PAT с использованием перегрузки интерфейса:
 
 ```
-ip nat inside source list LAN_TO_NAT interface Ethernet0/0 overload
+R1(config)#ip nat inside source list LAN_TO_NAT interface Ethernet0/0 overload
 ```
 
 С PC-A,PC-B,S1 и S2  выполним PING до интерфейса Lo1 (209.165.200.1) на R2 и отобразим NAT-таблицу на R1:

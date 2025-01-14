@@ -28,7 +28,7 @@
 
 ---
 
-### Шаг 1. Создание сети и настройка основных параметров устройства
+### 1. Создание сети и настройка основных параметров устройства
 
 * Создана топология сети в EVE-NG.
 * Выполним настройку интерфейсов активного оборудования согласно талицы ip адресации.
@@ -77,91 +77,56 @@ Ethernet0/3                unassigned      YES unset  administratively down down
 Loopback1                  209.165.200.1   YES manual up                    up      
 R2#
 
-
 ```
 
+### 2. Настройка и проверка NAT для IPv4
 
+* Настроим NAT на R1, используя пул из трех адресов 209.165.200.226-209.165.200.228.
 
-
-
-
-
-
-
-
-
-
-
-SW2#sh ip int brief 
-Interface              IP-Address      OK? Method Status                Protocol
-Ethernet0/0            unassigned      YES unset  up                    up      
-Ethernet0/1            unassigned      YES unset  up                    up      
-Ethernet0/2            unassigned      YES unset  up                    up      
-Ethernet0/3            unassigned      YES unset  administratively down down    
-Vlan20                 10.20.0.3       YES manual down                  down    
-SW2#
-
-SW2#sh vlan
-
-VLAN Name                             Status    Ports
----- -------------------------------- --------- -------------------------------
-1    default                          active    Et0/0, Et0/1
-20   mng                              active    
-30   operations                       active    
-40   sales                            active    Et0/2
-999  PL                               active    Et0/3
-
-SW2#sh ip redirects 
-Default gateway is 10.20.0.1
-```
-* Настроим на коммутаторах магистральные каналы, разрешим vlan 20,30,40,1000, и назнаим native vlan:
+1. Настроим список доступа, определяющий какие адреса будут транслироваться. В данном случае все устройства в локальной сети R1 имеют право на трансляцию.
 
 ```
-SW1(config)# int r e 0/0-1
-SW1(config-if-range)#switchport trunk encapsulation dot1q 
-SW1(config-if-range)#switchport mode trunk 
-SW1(config-if-range)#no shutdown 
-SW1(config-if-range)#switchport trunk allowed vlan 20,30,40,1000
-SW1(config-if-range)#switchport trunk native vlan 1000
-
-SW1#sh interfaces trunk 
-
-Port        Mode             Encapsulation  Status        Native vlan
-Et0/0       on               802.1q         trunking      1000
-Et0/1       on               802.1q         trunking      1000
-
-Port        Vlans allowed on trunk
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-
-Port        Vlans allowed and active in management domain
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-
-Port        Vlans in spanning tree forwarding state and not pruned
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-SW1#
-
-SW2#sh interfaces trunk 
-
-Port        Mode             Encapsulation  Status        Native vlan
-Et0/0       on               802.1q         trunking      1000
-Et0/1       on               802.1q         trunking      1000
-
-Port        Vlans allowed on trunk
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-
-Port        Vlans allowed and active in management domain
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-
-Port        Vlans in spanning tree forwarding state and not pruned
-Et0/0       20,30,40,1000
-Et0/1       20,30,40,1000
-SW2#
+R1(config)#ip access-list standard LAN_TO_NAT
+R1(config-std-nacl)#permit 192.168.1.0 0.0.0.255
 ```
 
-* Настроим саб интерфейсы на R1:
+2. Создадим пул NAT адресов:
+
+```
+R1(config)# ip nat pool PUBLIC_ACCESS 209.165.200.226 209.165.200.228 netmask 255.255.255.248
+```
+
+3. Настроим трансляцию адресов, связав ранее созданные ACL и пул адресов с процессом преобразования адресов:
+
+	```
+R1(config)#ip nat inside source list LAN_TO_NAT pool PUBLIC_ACCESS 
+	```
+
+4. Зададим внутренний и внешний интерфейсы:
+
+	```
+	R1(config)# int e0/1
+	R1(config-if)# ip nat inside
+	R1(config-if)# int e0/0
+	R1(config-if)# ip nat outside
+	```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,2 +1,2 @@
-- [1 - Настройка Router-on-a-Stick и Inter-VLAN Routing](lab01/).
+- [1 - Настройка Router-on-a-Stick and Inter-VLAN Routing](lab01/).
 

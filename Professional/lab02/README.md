@@ -164,51 +164,6 @@ Et0/3            Desg FWD 2000000   128.4    P2p
 S1#
 
 ```
-```
-S2#sh spanning-tree mst 
-
-##### MST0    vlans mapped:   1-19,21-29,31-39,41-49,51-99,101-998,1000-4094
-Bridge        address aabb.cc00.2000  priority      32768 (32768 sysid 0)
-Root          address aabb.cc00.1000  priority      32768 (32768 sysid 0)
-              port    Et0/0           path cost     0        
-Regional Root address aabb.cc00.1000  priority      32768 (32768 sysid 0)
-                                      internal cost 2000000   rem hops 19
-Operational   hello time 2 , forward delay 15, max age 20, txholdcount 6 
-Configured    hello time 2 , forward delay 15, max age 20, max hops    20
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Et0/0            Root FWD 2000000   128.1    P2p 
-Et0/1            Altn BLK 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
-
-##### MST1    vlans mapped:   20,30,100,999
-Bridge        address aabb.cc00.2000  priority      28673 (28672 sysid 1)
-Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
-              port    Et0/0           cost          2000000   rem hops 19
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Et0/0            Root FWD 2000000   128.1    P2p 
-Et0/1            Altn BLK 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
-
-##### MST2    vlans mapped:   40,50
-Bridge        address aabb.cc00.2000  priority      24578 (24576 sysid 2)
-Root          this switch for MST2
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Et0/0            Desg FWD 2000000   128.1    P2p 
-Et0/1            Desg FWD 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
-
-S2#
-```
-
 
 #### Шаг 5: Настройка корневого моста.
 

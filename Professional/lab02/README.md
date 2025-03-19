@@ -1,7 +1,8 @@
 
 ## Развертывание коммутируемой сети с резервными каналами 
 
-Изучение работы STP проводилось в рамках базового курса. Ссылка на работу: (https://github.com/AlexeyKislitsyn/AlexeyKislitsyn/tree/main/Basic/lab07)
+Изучение работы STP проводилось в рамках базового курса. Ссылка на работу: (https://github.com/AlexeyKislitsyn/AlexeyKislitsyn/tree/main/Basic/lab07).
+Здесь же я хочу рассмотреть работу протокола MST.
 
 
 #### Топология

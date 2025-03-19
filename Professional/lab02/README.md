@@ -101,15 +101,16 @@ interface Ethernet0/3
 
 ### Часть 2: Настроим регион: имя, ревизия, маппинг.
 
+```
 S2(config)#spanning-tree mode mst 
 S2(config)#spanning-tree mst configuration 
 S2(config-mst)#name REGION_1
 S2(config-mst)#revision 1
 S2(config-mst)#instance 1 vlan 20,30,100,999 
 S2(config-mst)#instance 2 vlan 40,50
+```
 
 Аналогичные настройки выполним на S1 и S3
-
 
 Введем команду show spanning-tree mst на всех трех коммутаторах. Приоритет идентификатора моста рассчитывается путем сложения значений приоритета и расширенного идентификатора системы. Расширенным идентификатором системы всегда является номер сети VLAN. В примере ниже все три коммутатора имеют равные значения приоритета идентификатора моста (приоритет по умолчанию = 32768,+ номер VLAN); следовательно, коммутатор с самым низким значением MAC-адреса становится корневым мостом, в данном случае S1.
 
@@ -154,6 +155,50 @@ Et0/3            Desg FWD 2000000   128.4    P2p
 S1#
 
 ```
+```
+S2#sh spanning-tree mst 
+
+##### MST0    vlans mapped:   1-19,21-29,31-39,41-49,51-99,101-998,1000-4094
+Bridge        address aabb.cc00.2000  priority      32768 (32768 sysid 0)
+Root          address aabb.cc00.1000  priority      32768 (32768 sysid 0)
+              port    Et0/0           path cost     0        
+Regional Root address aabb.cc00.1000  priority      32768 (32768 sysid 0)
+                                      internal cost 2000000   rem hops 19
+Operational   hello time 2 , forward delay 15, max age 20, txholdcount 6 
+Configured    hello time 2 , forward delay 15, max age 20, max hops    20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/0            Root FWD 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Desg FWD 2000000   128.3    P2p 
+Et0/3            Desg FWD 2000000   128.4    P2p 
+
+##### MST1    vlans mapped:   20,30,100,999
+Bridge        address aabb.cc00.2000  priority      28673 (28672 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
+              port    Et0/0           cost          2000000   rem hops 19
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/0            Root FWD 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Desg FWD 2000000   128.3    P2p 
+Et0/3            Desg FWD 2000000   128.4    P2p 
+
+##### MST2    vlans mapped:   40,50
+Bridge        address aabb.cc00.2000  priority      24578 (24576 sysid 2)
+Root          this switch for MST2
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/0            Desg FWD 2000000   128.1    P2p 
+Et0/1            Desg FWD 2000000   128.2    P2p 
+Et0/2            Desg FWD 2000000   128.3    P2p 
+Et0/3            Desg FWD 2000000   128.4    P2p 
+
+S2#
+```
 
 
 ### Шаг 4: Настройка корневого моста.
@@ -179,219 +224,216 @@ S2(config)#spanning-tree mst 2 root prim
 
 ```
 
-Таким образом у нас пполучается следующая картина:
+Получается следующая картина:
 
 ```
-S1#sh spanning-tree mst 
-
-##### MST0    vlans mapped:   1-19,21-29,31-39,41-49,51-99,101-998,1000-4094
-Bridge        address aabb.cc00.1000  priority      32768 (32768 sysid 0)
-Root          this switch for the CIST
-Operational   hello time 2 , forward delay 15, max age 20, txholdcount 6 
-Configured    hello time 2 , forward delay 15, max age 20, max hops    20
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Et0/0            Desg FWD 2000000   128.1    P2p 
-Et0/1            Desg FWD 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
+S3#sh spanning-tree mst 1-2
 
 ##### MST1    vlans mapped:   20,30,100,999
-Bridge        address aabb.cc00.1000  priority      24577 (24576 sysid 1)
-Root          this switch for MST1
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Et0/0            Desg FWD 2000000   128.1    P2p 
-Et0/1            Desg FWD 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
-
-##### MST2    vlans mapped:   40,50
-Bridge        address aabb.cc00.1000  priority      28674 (28672 sysid 2)
-Root          address aabb.cc00.2000  priority      24578 (24576 sysid 2)
+Bridge        address aabb.cc00.3000  priority      32769 (32768 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
               port    Et0/0           cost          2000000   rem hops 19
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
 Et0/0            Root FWD 2000000   128.1    P2p 
 Et0/1            Altn BLK 2000000   128.2    P2p 
-Et0/2            Desg FWD 2000000   128.3    P2p 
-Et0/3            Desg FWD 2000000   128.4    P2p 
+Et0/2            Altn BLK 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
 
-S1#
-```
-
-### Часть 3:	Наблюдение за процессом выбора протоколом STP порта, исходя из стоимости портов
-
-Порт F0/4 коммутатора S3 альтернативный и заблокирован.
-
-### Шаг 1:	Изменим стоимость порта.
-
-Помимо заблокированного порта, единственным активным портом на этом коммутаторе является порт, выделенный в качестве порта корневого моста. Уменьшим стоимость этого порта корневого моста до 18
-
-```
-S3(config)#int f 0/2
-S3(config-if)#spanning-tree vlan 1 cost 18
-```
-
-### Шаг 2:	Посмотрим изменения протокола spanning-tree.
-
-S1:
-
-```
-S1#sh spanning-tree 
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0010.11B7.C60E
-             Cost        19
-             Port        2(FastEthernet0/2)
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0060.2F46.1DC9
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  20
+##### MST2    vlans mapped:   40,50
+Bridge        address aabb.cc00.3000  priority      32770 (32768 sysid 2)
+Root          address aabb.cc00.2000  priority      24578 (24576 sysid 2)
+              port    Et0/2           cost          2000000   rem hops 19
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/4            Altn BLK 19        128.4    P2p
-Fa0/2            Root FWD 19        128.2    P2p
-
-S1#
-```
-
-S3:
-
-```
-S3#sh spanning-tree 
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0010.11B7.C60E
-             Cost        18
-             Port        2(FastEthernet0/2)
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     00D0.BC93.D827
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  20
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Fa0/2            Root FWD 18        128.2    P2p
-Fa0/4            Desg FWD 19        128.4    P2p
+Et0/0            Altn BLK 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
 
 S3#
 ```
 
-Т.к мы изменили стоимость порта root на S3 в меньшую сторону , то Fa0/4 на S1 стал Altn-BLK, а Fa0/4 S3 изменился на Desg. 
+Таким образом, мы получили разную топологию VLANs 20,30,100,999 и VLANs 40,50, а значит искомую балансировку по линкам.
 
-### Шаг 3:	Удалим изменения стоимости порт.
+### Часть 3:	Тюнинг MST корневой порт
+
+Кроме этого можно влиять на выбор корневого порта. Добавим на всех коммутаторах VLAN 60,70 и сделаем настройки:
 
 ```
-S3(config)#int f 0/2
-S3(config-if)#no spanning-tree vlan 1 cost 18
+S1(config)#spanning-tree mst configuration 
+S1(config-mst)#revision 2
+S1(config-mst)#instance 3 vlan 60,70
+```
+
+На других коммутаторах аналогично + сделаем S1 рутовым для MST3:
+
+```
+S1(config)#spanning-tree mst 3 root primary 
+
+S2(config)#spanning-tree mst 3 root second
+```
+
+Что мы получаем:
+
+```
+S3#sh spanning-tree mst 1,3
+
+##### MST1    vlans mapped:   20,30,100,999
+Bridge        address aabb.cc00.3000  priority      32769 (32768 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
+              port    Et0/0           cost          2000000   rem hops 19
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/0            Root FWD 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Altn BLK 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+##### MST3    vlans mapped:   60,70
+Bridge        address aabb.cc00.3000  priority      32771 (32768 sysid 3)
+Root          address aabb.cc00.1000  priority      24579 (24576 sysid 3)
+              port    Et0/0           cost          2000000   rem hops 19
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/0            Root FWD 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Altn BLK 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+S3#
+```
+
+У нас от S3 до S1 два линка: e 0/0 и e 0/1. А инстансы 1 и 3 утилизируют только линк e 0/0, а e 0/1 - простаивает. Нам нужно разблокировать порт е 0/1 для инстанса 3 (vlan 60,70). Это можно сделать спомощью стоимости порта (port cost) или приоритета порта (port priority).
+
+Уменьшим стоимость порта e 0/1:
+
+```
+S3(config)#int e 0/1
+S3(config-if)#spanning-tree mst 3 cost 1000
 S3(config-if)#
 ```
 
-После выполнения данной команды, протокол STP сбросил порт на коммутаторе некорневого моста, вернув исходные настройки порта.
-
-### Часть 4:	Наблюдение за процессом выбора протоколом STP порта, исходя из приоритета портов
-
-Включим порты F0/1 и F0/3 на всех коммутаторах.
+Смотрим:
 
 ```
-S3(config)#int range f0/1, f0/3
-S3(config-if-range)#no shutdown
+S3#sh spanning-tree mst 1,3
 
-S2(config)#int ran f0/1, f0/3
-S2(config-if-range)#no shutdown 
-
-S1(config)#int range f0/1, f0/3
-S1(config-if-range)#no sh
-```
-
-S1:
-
-```
-S1# sh spanning-tree 
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0010.11B7.C60E
-             Cost        19
-             Port        1(FastEthernet0/1)
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0060.2F46.1DC9
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  20
+##### MST1    vlans mapped:   20,30,100,999
+Bridge        address aabb.cc00.3000  priority      32769 (32768 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
+              port    Et0/0           cost          2000000   rem hops 19
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/4            Desg FWD 19        128.4    P2p
-Fa0/3            Desg FWD 19        128.3    P2p
-Fa0/1            Root FWD 19        128.1    P2p
-Fa0/2            Altn BLK 19        128.2    P2p
+Et0/0            Root FWD 2000000   128.1    P2p 
+Et0/1            Altn BLK 2000000   128.2    P2p 
+Et0/2            Altn BLK 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
 
-S1#
-```
-
-S2:
-
-```
-S2#sh spanning-tree 
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0010.11B7.C60E
-             This bridge is the root
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     0010.11B7.C60E
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  20
+##### MST3    vlans mapped:   60,70
+Bridge        address aabb.cc00.3000  priority      32771 (32768 sysid 3)
+Root          address aabb.cc00.1000  priority      24579 (24576 sysid 3)
+              port    Et0/1           cost          1000      rem hops 19
 
 Interface        Role Sts Cost      Prio.Nbr Type
 ---------------- ---- --- --------- -------- --------------------------------
-Fa0/3            Desg FWD 19        128.3    P2p
-Fa0/1            Desg FWD 19        128.1    P2p
-Fa0/2            Desg FWD 19        128.2    P2p
-Fa0/4            Desg FWD 19        128.4    P2p
-
-S2#
-```
-
-S3:
-```
-S3#sh spanning-tree 
-VLAN0001
-  Spanning tree enabled protocol ieee
-  Root ID    Priority    32769
-             Address     0010.11B7.C60E
-             Cost        19
-             Port        1(FastEthernet0/1)
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-
-  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
-             Address     00D0.BC93.D827
-             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
-             Aging Time  20
-
-Interface        Role Sts Cost      Prio.Nbr Type
----------------- ---- --- --------- -------- --------------------------------
-Fa0/1            Root FWD 19        128.1    P2p
-Fa0/2            Altn BLK 19        128.2    P2p
-Fa0/3            Altn BLK 19        128.3    P2p
-Fa0/4            Altn BLK 19        128.4    P2p
+Et0/0            Altn BLK 2000000   128.1    P2p 
+Et0/1            Root FWD 1000      128.2    P2p 
+Et0/2            Desg FWD 2000000   128.3    P2p 
+Et0/3            Desg FWD 2000000   128.4    P2p 
 
 S3#
 ```
 
-Порты f0/1 на S1 и S3 выбраны как root. Если стоимости портов равны, процесс сравнивает BID. Если BID равны, для определения корневого моста используются приоритеты портов. Значение приоритета по умолчанию — 128. STP объединяет приоритет порта с номером порта, чтобы разорвать связи. Наиболее низкие значения являются предпочтительными. Таким образом Prio.Nbr - 128.1 - предпочтительней.
+Теперь vlan 20,30,100,999 ходят через e 0/0, а vlan 60,70 - через e 0/1.
+
+Но может сложиться ситуация, что коммутатор S1 выйдет из строя или отвалятся линки от S3 к S1, тогда получается что у нас опять утилизирован один линк e 0/2:
+
+```
+S3#sh spanning-tree mst 1-3
+
+##### MST1    vlans mapped:   20,30,100,999
+Bridge        address aabb.cc00.3000  priority      32769 (32768 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
+              port    Et0/2           cost          4000000   rem hops 18
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+##### MST2    vlans mapped:   40,50
+Bridge        address aabb.cc00.3000  priority      32770 (32768 sysid 2)
+Root          address aabb.cc00.2000  priority      24578 (24576 sysid 2)
+              port    Et0/2           cost          2000000   rem hops 19
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+##### MST3    vlans mapped:   60,70
+Bridge        address aabb.cc00.3000  priority      32771 (32768 sysid 3)
+Root          address aabb.cc00.1000  priority      24579 (24576 sysid 3)
+              port    Et0/2           cost          4000000   rem hops 18
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+S3#
+```
+
+Тут для примера воспользуемся настройкой приоритета. Чтобы порт стал корневым приоритет нужно уменьшать не на нём самом, а на порту с другой стороны линка. Разблокируем порт e 0/3 для инстанса 3. 
+
+```
+S2(config)#int e 0/3
+S2(config-if)#spanning-tree mst 3 port-priority 64
+```
+
+```
+S3#sh spanning-tree mst 1-3
+
+##### MST1    vlans mapped:   20,30,100,999
+Bridge        address aabb.cc00.3000  priority      32769 (32768 sysid 1)
+Root          address aabb.cc00.1000  priority      24577 (24576 sysid 1)
+              port    Et0/2           cost          4000000   rem hops 18
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+##### MST2    vlans mapped:   40,50
+Bridge        address aabb.cc00.3000  priority      32770 (32768 sysid 2)
+Root          address aabb.cc00.2000  priority      24578 (24576 sysid 2)
+              port    Et0/2           cost          2000000   rem hops 19
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Root FWD 2000000   128.3    P2p 
+Et0/3            Altn BLK 2000000   128.4    P2p 
+
+##### MST3    vlans mapped:   60,70
+Bridge        address aabb.cc00.3000  priority      32771 (32768 sysid 3)
+Root          address aabb.cc00.1000  priority      24579 (24576 sysid 3)
+              port    Et0/3           cost          4000000   rem hops 18
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Et0/2            Altn BLK 2000000   128.3    P2p 
+Et0/3            Root FWD 2000000   128.4    P2p 
+
+S3#
+```
+
+Таким образом для MST1,2 - активный порт e 0/2, для MST3 - e 0/3.
+
+
+

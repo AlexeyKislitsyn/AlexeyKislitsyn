@@ -51,62 +51,61 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 | 999         | Parking_Lot  | S1: F0/1-4, F0/7-24, G0/1-2   |  
 | 1000        | native       | -                             | 
 
+### Шаг 1. Настройка маршрутизаторов R1 и R2:
 
-В CPT создана лаборатория:
-
-![](11.png)
-
-### Шаг 1. Настройка маршрутизации между сетями VLAN на маршрутизаторе R1
-
-Согласно схемы адресации, настроим на интрерфейсе G0/0/1 маршрутизатора R1 подинтерфейсы для каждой VLAN:
+Согласно схемы адресации, настроим на интрерфейсе e 0/0 маршрутизатора R1 подинтерфейсы для каждой VLAN:
 
 ```
-R1(config)#int g0/0/1.100
-R1(config-subif)#description users
-R1(config-subif)#encapsulation dot1Q 100
-R1(config-subif)#ip address 192.168.1.1 255.255.255.192
-R1(config-subif)#int g0/0/1.200
-R1(config-subif)#description management
-R1(config-subif)#encapsulation dot1Q 200
-R1(config-subif)#ip address 192.168.1.65 255.255.255.224
-R1(config-subif)#int g0/0/1.1000
-R1(config-subif)#description native
-R1(config-subif)#encapsulation dot1Q 1000
-R1(config-subif)#int g0/0/1
-R1(config-if)#no shutdown
-```
-
-### Шаг 2. Настройка интерфейса g0/0/0 маршрутизатора R1 согласно таблицы адресации и статической маршрутизации в сеть 192.168.1.96, находящуюся за R2.
+interface Ethernet0/0.100
+ description USERS
+ encapsulation dot1Q 100
+ ip address 192.168.1.1 255.255.255.192
+!
+interface Ethernet0/0.200
+ description MANAGEMENT
+ encapsulation dot1Q 200
+ ip address 192.168.1.65 255.255.255.224
+!
+interface Ethernet0/0.1000
+ description NATIVE
+ encapsulation dot1Q 1000 native
 
 ```
-R1(config)#int g 0/0/0
-R1(config-if)#ip address 10.0.0.1 255.255.255.252
-R1(config-if)#no shutdown 
-R1(config)#ip route 192.168.1.96 255.255.255.240 10.0.0.2
-```
 
-### Шаг 3. Настройка адресации на интерфейсах G0/0/0 и G0/0/1 маршрутизатора R2 согласно таблицы адресации и статической маршрутизации в сети 192.168.1.0 и 192.168.1.64, находящихся за R1. 
+### Шаг 2. Настройка интерфейса e 0/1 маршрутизатора R1 согласно таблицы адресации и статической маршрутизации в сеть 192.168.1.96, находящуюся за R2.
 
 ```
-R2(config)#int g 0/0/0
-R2(config-if)#ip address 10.0.0.2 255.255.255.252
-R2(config-if)#no shutdown 
-R2(config-if)#int g 0/0/1
-R2(config-if)#ip address 192.168.1.97 255.255.255.240
-R2(config-if)#no shutdown 
-R2(config)#ip route 192.168.1.0 255.255.255.192 10.0.0.1
-R2(config)#ip route 192.168.1.64 255.255.255.224 10.0.0.1
+interface Ethernet0/1
+ ip address 10.0.0.1 255.255.255.252
+ duplex auto
+!
+ip route 192.168.1.96 255.255.255.240 10.0.0.2
+```
+
+### Шаг 3. Настройка адресации на интерфейсах e 0/0 и e 0/1 маршрутизатора R2 согласно таблицы адресации и статической маршрутизации в сети 192.168.1.0 и 192.168.1.64, находящихся за R1. 
+
+```
+interface Ethernet0/0
+ ip address 192.168.1.97 255.255.255.240
+ duplex auto
+!
+interface Ethernet0/1
+ ip address 10.0.0.2 255.255.255.252
+ duplex auto
+!
+ip route 192.168.1.0 255.255.255.192 10.0.0.1
+ip route 192.168.1.64 255.255.255.224 10.0.0.1
 ```
 
 проверим ip связанность между маршрутизаторами:
 
 ```
-R1#ping 10.0.0.2
-
+R1#ping 10.0.0.1
 Type escape sequence to abort.
-Sending 5, 100-byte ICMP Echos to 10.0.0.2, timeout is 2 seconds:
+Sending 5, 100-byte ICMP Echos to 10.0.0.1, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/4/5 ms
+R1#
 ```
 
 ### Шаг 4. Настройка коммутатора S1.
@@ -114,63 +113,70 @@ Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
 Создадим vlan:
 
 ```
-S1(config-if)#vlan 100
-S1(config-vlan)#name users
-S1(config-vlan)#vlan 200
-S1(config-vlan)#name management
-S1(config-vlan)#vlan 999
-S1(config-vlan)#name parking_lot
-S1(config-vlan)#vlan 1000
-S1(config-vlan)#name native
+S1#sh vlan brief 
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Et0/0, Et0/1, Et0/2, Et0/3
+100  USERS                            active    
+200  MANAGEMENT                       active    
+999  PARKING_LOT                      active    
+1000 NATIVE                           active 
 ```
 
 настроим svi управления и шлюз по умолчанию:
 
 ```
-S1(config)#int vlan 200
-S1(config-if)#ip address 192.168.1.66 255.255.255.224
-S1(config)#ip default-gateway 192.168.1.65
+interface Vlan200
+ ip address 192.168.1.66 255.255.255.224
+!
+ip default-gateway 192.168.1.65
+
 ```
 
 настроим транковый порт в сторону маршрутизатора R1:
 
 ```
-S1(config)#int f 0/5
-S1(config-if)#switchport mode trunk 
-S1(config-if)#switchport trunk native vlan 1000
-S1(config-if)#switchport trunk allowed vlan 100,200,1000
+interface Ethernet0/0
+ switchport trunk allowed vlan 100,200,1000
+ switchport trunk encapsulation dot1q
+ switchport trunk native vlan 1000
+ switchport mode trunk
+!
+
 ```
 
 Назначим все неиспользуемые порты S1 в VLAN Parking_Lot и административно деактивируем их.
 
 ```
-S1(config)#int range f 0/1-4 , f0/7-24 , g0/1-2
+S1(config)#int range e 0/2-3
 S1(config-if-range)#switchport mode access 
 S1(config-if-range)#switchport access vlan 999
 S1(config-if-range)#switchport nonegotiate 
 S1(config-if-range)#shutdown 
 ```
 
-назначим порт коммутатора f 0/6 в vlan 100 (users vlan) 
+назначим порт коммутатора e 0/1 в vlan 100 (users vlan) 
 
 ```
-S1(config)#int f 0/6
-S1(config-if)#switchport mode access 
-S1(config-if)#switchport access vlan 100
-```
+interface Ethernet0/1
+ switchport access vlan 100
+ switchport mode access
 
-если бы РС-А был подключен к сети с помощью DHCP, то мы бы получили адрес из сети 169.254.0.0/16, т.к DHCP сервер у нас еще не настроен.
+```
 
 ### Шаг 4. Настройка коммутатора S2.
 
 ```
-S2(config)#int vlan 1
-S2(config-if)#ip address 192.168.1.98 255.255.255.240
-S2(config)#ip default-gateway 192.168.1.97
-S2(config)#int range f 0/1-4, f 0/6-17, f 0/19-24, g 0/1-2
-S2(config-if-range)#shutdown 
-S2(config)#int f 0/18
-S2(config-if)#switchport mode access
+!
+interface Ethernet0/1
+ switchport mode access
+!
+interface Vlan1
+ ip address 192.168.1.98 255.255.255.240
+ shutdown
+!
+ip default-gateway 192.168.1.97
 ```
 
 ### Часть 2.  Настройка и проверка двух серверов DHCPv4 на R1.
@@ -180,19 +186,23 @@ S2(config-if)#switchport mode access
 Исключим первые пять используемых адресов из каждого пула адресов, создадим пул DHCP, укажим сеть, поддерживающую этот DHCP-сервер, в качестве имени домена укажим test.ru, настроим соответствующий шлюз по умолчанию для каждого пула DHCP, настроим время аренды на 2 дня 12 часов и 30 минут
 
 ```
-R1(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.5
-R1(config)#ip dhcp pool R1_DHCP_CLIENT
-R1(dhcp-config)#network 192.168.1.0 255.255.255.192
-R1(dhcp-config)#domain-name test.ru
-R1(dhcp-config)#default-router 192.168.1.1
-R1(dhcp-config)#lease 2:12:30
+!
+ip dhcp excluded-address 192.168.1.1 192.168.1.5
+ip dhcp excluded-address 192.168.1.97 192.168.1.101
+!
+ip dhcp pool R1_DHCP_CLIENT
+ network 192.168.1.0 255.255.255.192
+ domain-name test.ru
+ default-router 192.168.1.1 
+ lease 2 12 30
+!
+ip dhcp pool R2_DHCP_CLIENT
+ network 192.168.1.96 255.255.255.240
+ domain-name test.ru
+ default-router 192.168.1.97 
+ lease 2 12 30
+!
 
-R1(config)#ip dhcp excluded-address 192.168.1.97 192.168.1.101
-R1(config)#ip dhcp pool R2_DHCP_CLIENT
-R1(dhcp-config)#network 192.168.1.96 255.255.255.240
-R1(dhcp-config)#domain-name test.ru
-R1(dhcp-config)#default-router 192.168.1.97
-R1(dhcp-config)#lease 2:12:30
 ```
 
 ### Часть 3.	Настройка и проверка DHCP-ретрансляции на R2
@@ -200,7 +210,7 @@ R1(dhcp-config)#lease 2:12:30
 Выполним настройку R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1
 
 ```
-R2(config)#int g0/0/1
+R2(config)#int e 0/0
 R2(config-if)#ip helper-address 10.0.0.1
 ```
 
@@ -211,62 +221,61 @@ R2(config-if)#ip helper-address 10.0.0.1
 PC-A:
 
 ```
-C:\>ipconfig /all
+VPCS> ip dhcp
+DORA IP 192.168.1.6/26 GW 192.168.1.1
 
-FastEthernet0 Connection:(default port)
+VPCS> show ip
 
-   Connection-specific DNS Suffix..: test.ru
-   Physical Address................: 0010.114A.B9B6
-   Link-local IPv6 Address.........: FE80::210:11FF:FE4A:B9B6
-   IPv6 Address....................: ::
-   IPv4 Address....................: 192.168.1.6
-   Subnet Mask.....................: 255.255.255.192
-   Default Gateway.................: ::
-                                     192.168.1.1
-   DHCP Servers....................: 192.168.1.1
-   DHCPv6 IAID.....................: 
-   DHCPv6 Client DUID..............: 00-01-00-01-6D-B0-28-E0-00-10-11-4A-B9-B6
-   DNS Servers.....................: ::
-                                     0.0.0.0
+NAME        : VPCS[1]
+IP/MASK     : 192.168.1.6/26
+GATEWAY     : 192.168.1.1
+DNS         : 
+DHCP SERVER : 192.168.1.1
+DHCP LEASE  : 217795, 217800/108900/190575
+DOMAIN NAME : test.ru
+MAC         : 00:50:79:66:68:03
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
+
+VPCS>
 ```
 
 PC-B:
 
 ```
-C:\>ipconfig /all
+VPCS> ip dhcp
+DORA IP 192.168.1.102/28 GW 192.168.1.97
 
-FastEthernet0 Connection:(default port)
+VPCS> show ip
 
-   Connection-specific DNS Suffix..: test.ru
-   Physical Address................: 0000.0C93.96AA
-   Link-local IPv6 Address.........: FE80::200:CFF:FE93:96AA
-   IPv6 Address....................: ::
-   IPv4 Address....................: 192.168.1.102
-   Subnet Mask.....................: 255.255.255.240
-   Default Gateway.................: ::
-                                     192.168.1.97
-   DHCP Servers....................: 10.0.0.1
-   DHCPv6 IAID.....................: 
-   DHCPv6 Client DUID..............: 00-01-00-01-24-AA-C2-BC-00-00-0C-93-96-AA
-   DNS Servers.....................: ::
-                                     0.0.0.0
+NAME        : VPCS[1]
+IP/MASK     : 192.168.1.102/28
+GATEWAY     : 192.168.1.97
+DNS         : 
+DHCP SERVER : 10.0.0.1
+DHCP LEASE  : 217796, 217800/108900/190575
+DOMAIN NAME : test.ru
+MAC         : 00:50:79:66:68:04
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
+
+VPCS> 
+
 ```
 проверим ip связанность:
 
 ```
-C:\> ping 192.168.1.6
+VPCS> ping 192.168.1.6
 
-Pinging 192.168.1.6 with 32 bytes of data:
+84 bytes from 192.168.1.6 icmp_seq=1 ttl=62 time=2.721 ms
+84 bytes from 192.168.1.6 icmp_seq=2 ttl=62 time=1.481 ms
+84 bytes from 192.168.1.6 icmp_seq=3 ttl=62 time=2.100 ms
+84 bytes from 192.168.1.6 icmp_seq=4 ttl=62 time=5.526 ms
+84 bytes from 192.168.1.6 icmp_seq=5 ttl=62 time=1.876 ms
 
-Request timed out.
-Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
-Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
-Reply from 192.168.1.6: bytes=32 time<1ms TTL=126
-
-Ping statistics for 192.168.1.6:
-    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
-Approximate round trip times in milli-seconds:
-    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+VPCS>
 ```
 
 посмотрим сведения о пулах:
@@ -279,26 +288,34 @@ Pool R1_DHCP_CLIENT :
  Subnet size (first/next)       : 0 / 0 
  Total addresses                : 62
  Leased addresses               : 1
- Excluded addresses             : 2
  Pending event                  : none
-
- 1 subnet is currently in the pool
- Current index        IP address range                    Leased/Excluded/Total
- 192.168.1.1          192.168.1.1      - 192.168.1.62      1    / 2     / 62
+ 1 subnet is currently in the pool :
+ Current index        IP address range                    Leased addresses
+ 192.168.1.7          192.168.1.1      - 192.168.1.62      1
 
 Pool R2_DHCP_CLIENT :
  Utilization mark (high/low)    : 100 / 0
  Subnet size (first/next)       : 0 / 0 
  Total addresses                : 14
  Leased addresses               : 1
- Excluded addresses             : 2
  Pending event                  : none
-
- 1 subnet is currently in the pool
- Current index        IP address range                    Leased/Excluded/Total
- 192.168.1.97         192.168.1.97     - 192.168.1.110     1    / 2     / 14
+ 1 subnet is currently in the pool :
+ Current index        IP address range                    Leased addresses
+ 192.168.1.103        192.168.1.97     - 192.168.1.110     1
 R1#
+
 ```
 
 посмотрим назначенные ip адреса:
 
+```
+R1#sh ip dhcp binding 
+Bindings from all pools not associated with VRF:
+IP address          Client-ID/	 	    Lease expiration        Type
+		    Hardware address/
+		    User name
+192.168.1.6         0100.5079.6668.03       Mar 26 2025 07:05 AM    Automatic
+192.168.1.102       0100.5079.6668.04       Mar 26 2025 07:07 AM    Automatic
+R1#
+
+```

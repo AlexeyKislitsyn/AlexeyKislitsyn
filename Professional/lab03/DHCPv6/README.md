@@ -24,75 +24,86 @@
 ### Часть 1. Создание сети и настройка основных параметров устройства
 
 Динамическое назначение глобальных индивидуальных IPv6-адресов можно настроить тремя способами:
+
 •	Автоматическая конфигурация адреса без сохранения состояния (Stateless Address Autoconfiguration, SLAAC)
+
 •	DHCPv6 без отслеживания состояния
+
 •	Адресация DHCPv6 с учетом состояний
 
 ### Шаг 1. Настройка интерфейсов и маршрутизации для обоих маршрутизаторов.
 
-Настроим интерфейсы маршрутизатора R1 и R2 согласно таблицы адресации:
+* Настроим интерфейсы маршрутизатора R1 и R2 согласно таблицы адресации:
 
 ```
 R1:
 
-R1(config)#int g0/0/0
-R1(config-if)#ipv6 address 2001:db8:acad:2::1/64
-R1(config-if)#ipv6 address  fe80::1 link-local 
-
-R1(config-if)#int g0/0/1
-R1(config-if)#ipv6 address 2001:db8:acad:1::1/64
-R1(config-if)#ipv6 address  fe80::1 link-local 
+ipv6 unicast-routing
+!
+interface Ethernet0/0
+ no ip address
+ duplex auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:2::1/64
+!
+interface Ethernet0/1
+ no ip address
+ duplex auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:1::1/64
+!
+ipv6 route 2001:DB8:ACAD:3::/64 2001:DB8:ACAD:2::2
 
 R2:
 
-R2(config)#int g0/0/0
-R2(config-if)#ipv6 address 2001:db8:acad:2::2/64
-R2(config-if)#ipv6 address fe80::2 link-local 
-
-R2(config-if)#int g0/0/1
-R2(config-if)#ipv6 address 2001:db8:acad:3::1/64
-R2(config-if)#ipv6 address fe80::1 link-local 
+ipv6 unicast-routing
+!
+interface Ethernet0/0
+ no ip address
+ duplex auto
+ ipv6 address FE80::2 link-local
+ ipv6 address 2001:DB8:ACAD:2::2/64
+!
+interface Ethernet0/1
+ no ip address
+ duplex auto
+ ipv6 address FE80::1 link-local
+ ipv6 address 2001:DB8:ACAD:3::1/64
+!
+ipv6 route 2001:DB8:ACAD:1::/64 2001:DB8:ACAD:2::1
 ```
 
-Настройка маршрутизации:
+* Проверим ip связанность:
 
 ```
-R1(config)#ipv6 unicast-routing 
-R1(config)#ipv6 route 2001:db8:acad:3::/64 2001:db8:acad:2::2
-
-R2(config)#ipv6 unicast-routing 
-R2(config)#ipv6 route 2001:db8:acad:1::/64 2001:db8:acad:2::1
-
 R1#ping 2001:db8:acad:3::1
-
 Type escape sequence to abort.
-Sending 5, 100-byte ICMP Echos to 2001:db8:acad:3::1, timeout is 2 seconds:
+Sending 5, 100-byte ICMP Echos to 2001:DB8:ACAD:3::1, timeout is 2 seconds:
 !!!!!
-Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+Success rate is 100 percent (5/5), round-trip min/avg/max = 2/5/21 ms
+R1#
 ```
 
 ### Часть 2. Проверка назначения адреса SLAAC от R1.
 
+
+* PC-A получает адрес IPv6 с помощью метода SLAAC. Включим PC-A и убедимся, что сетевой адаптер настроен для автоматической настройки IPv6. В выводе команды show ipv6 мы увидим, что PC-A присвоил себе адрес из сети 2001:DB8:ACAD:1:/64.
+
 ```
-PC-A получает адрес IPv6 с помощью метода SLAAC. Включим PC-A и убедимся, что сетевой адаптер настроен для автоматической настройки IPv6. В выводе команды ipconfig мы увидим, что PC-A присвоил себе адрес из сети 2001:DB8:ACAD:1:/64.
+VPCS> show ipv6    
 
-C:\>ipconfig /all
+NAME              : VPCS[1]
+LINK-LOCAL SCOPE  : fe80::250:79ff:fe66:6805/64
+GLOBAL SCOPE      : 2001:db8:acad:1:2050:79ff:fe66:6805/64
+DNS               : 
+ROUTER LINK-LAYER : aa:bb:cc:00:10:10
+MAC               : 00:50:79:66:68:05
+LPORT             : 20000
+RHOST:PORT        : 127.0.0.1:30000
+MTU:              : 1500
 
-FastEthernet0 Connection:(default port)
+VPCS> 
 
-   Connection-specific DNS Suffix..: test.ru
-   Physical Address................: 0010.114A.B9B6
-   Link-local IPv6 Address.........: FE80::210:11FF:FE4A:B9B6
-   IPv6 Address....................: 2001:DB8:ACAD:1:210:11FF:FE4A:B9B6
-   IPv4 Address....................: 0.0.0.0
-   Subnet Mask.....................: 0.0.0.0
-   Default Gateway.................: FE80::1
-                                     0.0.0.0
-   DHCP Servers....................: 0.0.0.0
-   DHCPv6 IAID.....................: 
-   DHCPv6 Client DUID..............: 00-01-00-01-6D-B0-28-E0-00-10-11-4A-B9-B6
-   DNS Servers.....................: ::
-                                     0.0.0.0
  ```
                                     
  ### Часть 3. Настройка и проверка сервера DHCPv6 на R1

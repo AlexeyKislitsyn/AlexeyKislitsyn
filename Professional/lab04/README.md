@@ -24,4 +24,7 @@
 #### 1. Москва
 
 * Рассмотрим в офисе Москва Layer 2 - Loop Free Topology. Т.е Distribution SW4 и SW5 - L3 коммутаторы, между которыми организован L3 Port Channel, тем самым мы разрываем L2 кольцо. Сеть сегментирована на VLAN (в данном случае VPC1 - VLAN10, VPC2 - VLAN20). Абонентские VLANы на Access не пересекаются. В качестве FHRP используем HSRP, причем SW4 Active для VLAN10, SW5 Active для VLAN20. Так же для синхронизации с HSRP настроен rstp root primary и root secondary на Distribution. Аплинки на Access - trunk с разрешенными VLAN 10,100(management),1000 (native) в сторону SW4 и VLAN 20,100(management),1000 (native) в сторну SW5.
+
+
+
    

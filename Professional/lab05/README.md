@@ -109,3 +109,55 @@ interface Ethernet0/2.31
  ip policy route-map DUAL-ISP
 !
 ```
+
+* Проведем проверку корректности работы нашей схемы:
+
+Нормальное состояние (балансировка по VLAN):
+
+```
+VPC30
+
+VPCS> trace 8.8.8.8
+trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
+ 1   172.16.30.1   3.674 ms  2.945 ms  2.799 ms
+ 2   52.1.2.9   5.739 ms  4.778 ms  4.775 ms
+ 3   10.0.0.9   6.425 ms  5.435 ms  5.573 ms
+ 4   *10.0.0.5   6.820 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+VPCS> 
+
+VPC31
+VPCS> trace 8.8.8.8
+trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
+ 1   172.16.31.1   0.830 ms  0.729 ms  0.736 ms
+ 2   52.1.2.1   1.383 ms  1.344 ms  1.378 ms
+ 3   *10.0.0.1   1.829 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+VPCS> 
+```
+
+* Авария у ISP1 (отказ аплинка или недоступность сервиса):
+
+```
+VPC30
+
+VPCS> trace 8.8.8.8
+trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
+ 1   172.16.30.1   2.693 ms  2.532 ms  2.692 ms
+ 2   52.1.2.1   3.912 ms  4.394 ms  4.320 ms
+ 3   *10.0.0.1   7.300 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+VPCS>
+
+VPC31
+
+VPCS> trace 8.8.8.8
+trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
+ 1   172.16.31.1   1.503 ms  1.330 ms  0.988 ms
+ 2   52.1.2.1   2.030 ms  1.463 ms  1.586 ms
+ 3   *10.0.0.1   2.604 ms (ICMP type:3, code:3, Destination port unreachable)  *
+
+VPCS>
+```
+Тоже самое происходит при отказе ISP2. Таким образом, cхема отрабатывает корректно.
+

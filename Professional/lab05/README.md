@@ -161,3 +161,13 @@ VPCS>
 ```
 Тоже самое происходит при отказе ISP2. Таким образом, cхема отрабатывает корректно.
 
+
+* Настройка Лабытнанги:
+
+```
+ip nat inside source list LAN-TO-NAT interface Ethernet0/0 overload
+ip route 0.0.0.0 0.0.0.0 52.1.1.1
+!
+ip access-list extended LAN-TO-NAT
+ permit ip 172.16.100.0 0.0.0.255 any
+```

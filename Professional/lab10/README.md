@@ -118,7 +118,6 @@ router bgp 520
  bgp cluster-id 1.1.1.1
  bgp log-neighbor-changes
  network 52.1.0.0 mask 255.255.240.0
- network 52.1.0.12 mask 255.255.255.252
  neighbor RR1-TRIADA peer-group
  neighbor RR1-TRIADA remote-as 520
  neighbor RR1-TRIADA update-source Loopback0
@@ -127,8 +126,17 @@ router bgp 520
  neighbor 10.10.10.25 peer-group RR1-TRIADA
  neighbor 10.10.10.26 peer-group RR1-TRIADA
  neighbor 52.1.0.13 remote-as 101
- neighbor 52.1.0.13 prefix-list pl_DENY/30 out
 R23#
+
+R23#sh ip bgp summary 
+BGP router identifier 23.23.23.23, local AS number 520
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.10.10.24     4          520      32      37       26    0    0 00:22:57        6
+10.10.10.25     4          520      77      94       26    0    0 01:08:42        0
+10.10.10.26     4          520      76      93       26    0    0 01:04:32        1
+52.1.0.13       4          101      91      88       26    0    0 01:08:48        5
+R23#
+
 
 R24#sh run | s r b
 router bgp 520
@@ -136,8 +144,6 @@ router bgp 520
  bgp cluster-id 1.1.1.1
  bgp log-neighbor-changes
  network 52.1.0.0 mask 255.255.240.0
- network 52.1.0.0 mask 255.255.255.252
- network 52.1.0.8 mask 255.255.255.252
  neighbor RR2-TRIADA peer-group
  neighbor RR2-TRIADA remote-as 520
  neighbor RR2-TRIADA update-source Loopback0
@@ -146,10 +152,59 @@ router bgp 520
  neighbor 10.10.10.25 peer-group RR2-TRIADA
  neighbor 10.10.10.26 peer-group RR2-TRIADA
  neighbor 52.1.0.2 remote-as 2042
- neighbor 52.1.0.2 prefix-list pl_DENY/30 out
  neighbor 52.1.0.10 remote-as 301
- neighbor 52.1.0.10 prefix-list pl_DENY/30 out
 R24#
+
+R24#sh ip bgp summary 
+BGP router identifier 24.24.24.24, local AS number 520
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.10.10.23     4          520      38      33        8    0    0 00:23:55        5
+10.10.10.25     4          520      30      33        8    0    0 00:23:56        0
+10.10.10.26     4          520      32      34        8    0    0 00:23:56        1
+52.1.0.2        4         2042      37      33        8    0    0 00:23:59        1
+52.1.0.10       4          301      39      34        8    0    0 00:23:59        5
+R24#
+
+R25#sh run | s r b
+router bgp 520
+ bgp router-id 25.25.25.25
+ bgp log-neighbor-changes
+ neighbor 10.10.10.23 remote-as 520
+ neighbor 10.10.10.23 update-source Loopback0
+ neighbor 10.10.10.23 next-hop-self
+ neighbor 10.10.10.24 remote-as 520
+ neighbor 10.10.10.24 update-source Loopback0
+ neighbor 10.10.10.24 next-hop-self
+R25#
+
+R25#sh ip bgp summary 
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.10.10.23     4          520      96      79       32    0    0 01:10:22        7
+10.10.10.24     4          520      34      31       32    0    0 00:24:39        7
+R25
+
+R26#sh run | s r b
+router bgp 520
+ bgp router-id 26.26.26.26
+ bgp log-neighbor-changes
+ neighbor 10.10.10.23 remote-as 520
+ neighbor 10.10.10.23 next-hop-self
+ neighbor 10.10.10.24 remote-as 520
+ neighbor 10.10.10.24 update-source Loopback0
+ neighbor 10.10.10.24 next-hop-self
+ neighbor 52.1.0.6 remote-as 2042
+R26#
+
+R26#sh ip bgp summary 
+BGP router identifier 26.26.26.26, local AS number 520
+
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.10.10.23     4          520      92      75       46    0    0 01:03:40        7
+10.10.10.24     4          520      32      30       46    0    0 00:22:07        7
+52.1.0.6        4         2042      93      93       46    0    0 01:07:45        1
+R26#
+
+
 ```
 
 * R15:

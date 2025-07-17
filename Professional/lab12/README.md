@@ -208,3 +208,37 @@ icmp 140.100.0.2:13    10.10.13.1:13      8.8.8.8:13         8.8.8.8:13
 --- 140.100.0.2        10.10.13.1         ---                ---
 R15#
 ```
+
+#### Настроить NAT так, чтобы R19 был доступен с любого узла для удаленного управления.
+
+* Для начал настроим ssh на R19:
+
+```
+R19(config)#username Admin privilege 15 secret 123SxxAwqqwe
+R19(config)#ip ssh ver 2
+R19(config)#ip domain-name MSK
+R19(config)#crypto key generate rsa modulus 2048
+R19(config)#line vty 0 4
+R19(config-line)#transport input ssh
+R19(config-line)#login local
+```
+
+* На R14 и R15 настроим NAT для loopback R19:
+
+```
+ip nat inside source static 10.10.12.1 140.100.0.3
+```
+
+Проверим удаленное подключение к R19, например, из сетей СПБ (R18):
+
+```
+R18#ssh -l Admin 140.100.0.3
+Password: 
+R19#
+```
+
+Подключение выполняется корректно.
+
+#### *Настроить статический NAT(PAT) для офиса Чокурдах.
+
+

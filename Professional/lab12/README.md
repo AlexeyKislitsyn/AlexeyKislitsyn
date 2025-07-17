@@ -155,6 +155,7 @@ interface Ethernet0/3
 
 * Проверим работу NAT в офисе СПБ. С VPC9 запустим трассировку 8.8.8.8:
 
+```
 VPCS> trace 8.8.8.8
 trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
  1   172.16.1.1   1.358 ms  1.242 ms  1.027 ms
@@ -164,6 +165,7 @@ trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
  5   10.0.0.14   5.383 ms  4.921 ms  5.086 ms
  6   *10.0.0.1   6.748 ms (ICMP type:3, code:3, Destination port unreachable)  *
 VPCS> 
+```
 
 * NAT на R18:
 
@@ -186,6 +188,7 @@ ip nat inside source static 10.10.13.1 140.100.0.2
 
 * С R20 запустим пинг до 8.8.8.8:
 
+```
 R20#ping 8.8.8.8 source loopback 0
 Type escape sequence to abort.
 Sending 5, 100-byte ICMP Echos to 8.8.8.8, timeout is 2 seconds:
@@ -193,13 +196,14 @@ Packet sent with a source address of 10.10.13.1
 !!!!!
 Success rate is 100 percent (5/5), round-trip min/avg/max = 3/4/7 ms
 R20
+```
 
 * NAT на R15:
 
-!!!!!
+```
 R15#sh ip nat translations    
 Pro Inside global      Inside local       Outside local      Outside global
 icmp 140.100.0.2:13    10.10.13.1:13      8.8.8.8:13         8.8.8.8:13
 --- 140.100.0.2        10.10.13.1         ---                ---
 R15#
-!!!!!
+```

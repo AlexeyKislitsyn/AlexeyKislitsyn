@@ -67,7 +67,7 @@ int Ethernet0/3
 
 На R23 сэмулируем внешний сервис с ip 8.8.8.8, зальем его в BGP и будем проверять доступность из наших офисов.
 
-Проверим работу NAT в офисе Москва. С VPC1 прпингум 8.8.8.8:
+Проверим работу NAT в офисе Москва. С VPC1 пропингуем 8.8.8.8:
 
 ```
 VPCS> ping 8.8.8.8
@@ -152,4 +152,29 @@ interface Ethernet0/3
  ip nat outside
 !
 ```
+
+* Проверим работу NAT в офисе СПБ. С VPC9 запустим трассировку 8.8.8.8:
+
+VPCS> trace 8.8.8.8
+trace to 8.8.8.8, 8 hops max, press Ctrl+C to stop
+ 1   172.16.1.1   1.358 ms  1.242 ms  1.027 ms
+ 2   10.1.0.10   2.710 ms  2.912 ms  1.594 ms
+ 3   10.1.1.2   2.820 ms  2.473 ms  3.173 ms
+ 4   52.1.0.5   4.215 ms  4.184 ms  3.506 ms
+ 5   10.0.0.14   5.383 ms  4.921 ms  5.086 ms
+ 6   *10.0.0.1   6.748 ms (ICMP type:3, code:3, Destination port unreachable)  *
+VPCS> 
+
+* NAT на R18:
+
+```
+R18#sh ip nat translations 
+Pro Inside global      Inside local       Outside local      Outside global
+udp 20.0.0.1:26896     172.16.1.2:26896   8.8.8.8:26897      8.8.8.8:26897
+R18#
+```
+
+Схема отрабатывает корректно.
+
+#### Настроить статический NAT для R20.
 

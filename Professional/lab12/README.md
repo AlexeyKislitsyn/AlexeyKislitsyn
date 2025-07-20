@@ -33,7 +33,6 @@
 ```
 ip nat pool NAT-MSK 140.100.0.1 140.100.0.1 netmask 255.255.255.252
 ip nat inside source list NAT-LAN pool NAT-MSK overload
-ip route 140.100.0.0 255.255.254.0 Null0
 !
 ip access-list extended NAT-LAN
  permit ip 192.168.1.0 0.0.0.255 any

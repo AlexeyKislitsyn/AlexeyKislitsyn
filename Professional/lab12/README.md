@@ -312,12 +312,12 @@ ip nat inside source route-map rm-R26-ISP interface Ethernet0/0 overload
 и route-map для NAT с учетом исходящего интерфейса:
 
 ```
-!         
-route-map ISP1 permit 10
- match interface Ethernet0/0
-!         
-route-map ISP2 permit 20
+route-map rm-R25-ISP permit 10
  match interface Ethernet0/1
+!
+route-map rm-R26-ISP permit 10
+ match interface Ethernet0/0
+
 ```
 
 ```

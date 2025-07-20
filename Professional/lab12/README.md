@@ -515,3 +515,40 @@ VPCS>
 ```
 
 #### Настроить NTP сервер на R12 и R13. Все устройства в офисе Москва должны синхронизировать время с R12 и R13.
+
+Настроим R12, R13 в роли мастеров.
+
+
+Сервера R12, R13:
+
+```
+conf t
+!
+ntp master 2
+exit
+!
+```
+Маршрутизаторы:
+
+```
+conf t
+!
+ntp server 10.10.10.3
+ntp server 10.10.10.4
+!
+ntp update-calendar
+!
+```
+
+```
+R12#sh ntp status 
+Clock is synchronized, stratum 2, reference is 127.127.1.1    
+nominal freq is 250.0000 Hz, actual freq is 250.0000 Hz, precision is 2**10
+ntp uptime is 336300 (1/100 of seconds), resolution is 4000
+reference time is EC277199.18937500 (13:46:01.096 UTC Sun Jul 20 2025)
+clock offset is 0.0000 msec, root delay is 0.00 msec
+root dispersion is 2.25 msec, peer dispersion is 1.20 msec
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is 0.000000000 s/s
+system poll interval is 16, last update was 5 sec ago.
+R12#
+```

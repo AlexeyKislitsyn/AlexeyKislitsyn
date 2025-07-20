@@ -248,4 +248,121 @@ R19#
 
 Выполним настройки:
 
-* Через R26 
+* Через R26
+
+####  Настроить DHCPv4 сервера на R12 и R13, VPC1 и VPC7 должны получать адреса по DHCP.
+
+* Пусть R12 будет dhcp сервером для vlan 10 (192.168.1.0/24), а R13 будет dhcp сервером для vlan 20 (192.168.2.0/24). Выполним настройки:
+
+```
+R12#sh run | s dhcp
+ip dhcp excluded-address 192.168.1.1
+ip dhcp excluded-address 192.168.1.253 192.168.1.255
+ip dhcp pool LAN1
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1 
+ domain-name MSK
+R12#
+```
+ 
+```
+R13#sh run | s dhcp
+ip dhcp excluded-address 192.168.2.1
+ip dhcp excluded-address 192.168.2.253 192.168.2.255
+ip dhcp pool LAN2
+ network 192.168.2.0 255.255.255.0
+ default-router 192.168.2.1 
+ domain-name MSK
+R13#
+```
+
+На L3 коммутаторах SW4 и SW5 ghjgbitv хелпер адрес:
+
+
+```
+SW4:
+
+interface Vlan10
+ description VL10_USER
+ ip address 192.168.1.253 255.255.255.0
+ ip helper-address 10.10.10.3 
+ standby version 2
+ standby 10 ip 192.168.1.1
+ standby 10 priority 150
+ standby 10 preempt
+ ip ospf 1 area 10
+!
+interface Vlan20
+ description VL20_USER
+ ip address 192.168.2.253 255.255.255.0
+ ip helper-address 10.10.10.4 
+ standby version 2
+ standby 20 ip 192.168.2.1
+ ip ospf 1 area 10
+!
+```
+```
+SW5
+interface Vlan10
+ description VL10_USER
+ ip address 192.168.1.254 255.255.255.0
+ ip helper-address 10.10.10.3 
+ standby version 2
+ standby 10 ip 192.168.1.1
+ ip ospf 1 area 10
+!
+interface Vlan20
+ description VL20_USER
+ ip address 192.168.2.254 255.255.255.0
+ ip helper-address 10.10.10.4 
+ standby version 2
+ standby 20 ip 192.168.2.1
+ standby 20 priority 150
+ standby 20 preempt
+ ip ospf 1 area 10
+!        
+```
+Проверим на хостах получение по dhcp сетевых настроек:
+
+```
+VPCS> ip dhcp
+DDORA IP 192.168.1.3/24 GW 192.168.1.1
+
+VPCS> show ip
+
+NAME        : VPCS[1]
+IP/MASK     : 192.168.1.3/24
+GATEWAY     : 192.168.1.1
+DNS         : 
+DHCP SERVER : 10.0.1.10
+DHCP LEASE  : 86392, 86400/43200/75600
+DOMAIN NAME : MSK
+MAC         : 00:50:79:66:68:01
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
+
+VPCS> 
+```
+
+```
+VPCS> ip dhcp -r
+DORA IP 192.168.2.3/24 GW 192.168.2.1
+
+VPCS> show ip
+
+NAME        : VPCS[1]
+IP/MASK     : 192.168.2.3/24
+GATEWAY     : 192.168.2.1
+DNS         : 
+DHCP SERVER : 10.0.1.6
+DHCP LEASE  : 86394, 86400/43200/75600
+DOMAIN NAME : MSK
+MAC         : 00:50:79:66:68:07
+LPORT       : 20000
+RHOST:PORT  : 127.0.0.1:30000
+MTU         : 1500
+
+VPCS>
+
+```

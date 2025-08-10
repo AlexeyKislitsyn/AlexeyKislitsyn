@@ -57,7 +57,7 @@ ip route 172.16.0.0 255.255.252.0 Tunnel1
 
 ```
 
-Натройка R18 в СПБ:
+Настройка R18 в СПБ:
 
 ```
 
@@ -87,7 +87,7 @@ ip route 192.168.0.0 255.255.252.0 Tunnel0
 ip route 192.168.0.0 255.255.252.0 Tunnel1 250
 
 ```
-* C Москвы пустим trace до СПБ: основно туннель
+* C Москвы пустим trace до СПБ: основной туннель
 
 ```
 VPCS> trace 172.16.1.2  
@@ -119,6 +119,165 @@ trace to 172.16.1.2, 8 hops max, press Ctrl+C to stop
 VPCS>
 ```
 
-Таким образом схема отрабатывает корректно.
+Таким образом, схема отрабатывает корректно.
  
 #### DMVPN между офисами Москва и Чокурдах, Лабытнанги
+
+* Построим DMVPN между офисами Москва, Чокурдах и Лабытнанги. В Москве R14, R15  выступают в роли  HUB, в Чокурдах, Лабытнанги - SPOKE. Кроме того, SPOKE могут напрямую общаться между собой минуя HUB. В кчестве протокола маршрутизации будем использовать ibgp. R14 является основным хабом. В случае выхода из строя основного хаба, либо недоступности удаленных офисов через провайдера Ламас - трафик будет проходить через резервный хаб R14.
+
+Офис в Москве - HUB:
+
+```
+R14 overlay: 172.30.0.129/25
+R15 overlay: 172.30.0.1/25
+LAN : 192.168.0.0/17
+```
+
+Лабынтаги - SPOKE:
+
+```
+R27 overlay: 172.30.0.2/25
+R27 overlay: 172.30.0.130/25 Rezerv to R14
+LAN: 100.64.0.0/24
+```
+
+Чокурдах - SPOKE:
+
+```
+R28 overlay: 172.30.0.3/25
+R28 overlay: 172.30.0.131/25 Rezerv to R14
+LAN: 172.16.30.0/23
+```
+
+* Настроим туннельные интерфейсы в Москве:
+
+R15 - HUB: 
+
+```
+interface Tunnel1001
+ description DMVPN
+ ip address 172.30.0.1 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp network-id 200
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/2
+ tunnel mode gre multipoint
+ tunnel key 200
+!         
+
+```
+
+R14 - HUB:
+
+```
+interface Tunnel1002
+ description DMVPN-REZERV
+ ip address 172.30.0.129 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp network-id 201
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/2
+ tunnel mode gre multipoint
+ tunnel key 201
+!
+```
+
+Лабынтаги - SPOKE:
+
+```
+interface Tunnel1001
+ description DMVPN-TO-MSK-R15
+ ip address 172.30.0.2 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 30.1.0.2
+ ip nhrp map 172.30.0.1 30.1.0.2
+ ip nhrp network-id 200
+ ip nhrp nhs 172.30.0.1
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 200
+!
+interface Tunnel1002
+ description DMVPN-TO-MSK-R14-REZERV
+ ip address 172.30.0.130 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 101.0.0.2
+ ip nhrp map 172.30.0.129 101.0.0.2
+ ip nhrp network-id 201
+ ip nhrp nhs 172.30.0.129
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 201
+!         
+```
+
+Чокурдах - SPOKE:
+
+```
+interface Tunnel1001
+ description DMVPN-TO-MSK-R15
+ ip address 172.30.0.3 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 30.1.0.2
+ ip nhrp map 172.30.0.1 30.1.0.2
+ ip nhrp network-id 200
+ ip nhrp nhs 172.30.0.1
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 200
+!         
+interface Tunnel1002
+ description DMVPN-TO-MSK-R14-REZERV
+ ip address 172.30.0.131 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 101.0.0.2
+ ip nhrp map 172.30.0.129 101.0.0.2
+ ip nhrp network-id 201
+ ip nhrp nhs 172.30.0.129
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/1
+ tunnel mode gre multipoint
+ tunnel key 201
+! 
+```
+
+Хаб R14 и R15 динамически изучили споки, после чего прошла их регистрация на хабе:
+
+```
+R15#sh dmvpn 
+Interface: Tunnel1001, IPv4 NHRP Details 
+Type:Hub, NHRP Peers:2, 
+
+  Ent  Peer NBMA Addr Peer Tunnel Add State  UpDn Tm Attrb
+ ----- --------------- --------------- ----- -------- -----
+     1 52.1.1.2             172.30.0.2    UP 01:07:16     D
+     1 52.1.2.10            172.30.0.3    UP 01:07:31     D
+
+R15#
+
+R14#sh dmvpn 
+Interface: Tunnel1002, IPv4 NHRP Details 
+Type:Hub, NHRP Peers:2, 
+
+  Ent  Peer NBMA Addr Peer Tunnel Add State  UpDn Tm Attrb
+ ----- --------------- --------------- ----- -------- -----
+     1 52.1.1.2           172.30.0.130    UP 01:05:39     D
+     1 52.1.1.10          172.30.0.131    UP 01:05:54     D
+
+R14#
+```

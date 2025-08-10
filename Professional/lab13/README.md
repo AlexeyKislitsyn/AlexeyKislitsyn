@@ -21,28 +21,33 @@
 
 #### GRE между офисами Москва и С.-Петербург
 
-* Настроим маршрутизаторы R14 и R15 в Москве:
-* План адресации
+* Основной туннель будет проходить через R15, резервный через R14. Настроим маршрутизаторы R14 и R15 в Москве. 
 
-
+Москва: В качестве destination будем использовать публичный адрес AS2042 20.0.0.254 (Санкт-Петербург), специально выделенный для этих целей.
 ```
-ip nat pool NAT-MSK 140.100.0.1 140.100.0.1 netmask 255.255.255.252
-ip nat inside source list NAT-LAN pool NAT-MSK overload
-!
-ip access-list extended NAT-LAN
- permit ip 192.168.1.0 0.0.0.255 any
- permit ip 192.168.2.0 0.0.0.255 any
- deny   ip any any
-!
+R15:
 
-### R15:
+interface Tunnel0
+ description TUNNEL-GRE-TO-SPB
+ ip address 172.31.0.1 255.255.255.252
+ ip mtu 1400
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/2
+ tunnel destination 20.0.0.254
+end
 
-ip nat pool NAT-MSK 140.100.0.1 140.100.0.1 netmask 255.255.255.252
-ip nat inside source list NAT-LAN pool NAT-MSK overload
+R14:
 
-ip access-list extended NAT-LAN
- permit ip 192.168.1.0 0.0.0.255 any
- permit ip 192.168.2.0 0.0.0.255 any
- deny   ip any any
+interface Tunnel1
+ description TUNNEL-GRE-TO-MSK-REZERV
+ ip address 172.31.0.5 255.255.255.252
+ ip mtu 1400
+ ip tcp adjust-mss 1360
+ keepalive 10 1
+ tunnel source Ethernet0/2
+ tunnel destination 20.0.0.254
+end
+
 
 ```

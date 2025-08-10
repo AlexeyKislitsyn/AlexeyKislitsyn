@@ -281,3 +281,155 @@ Type:Hub, NHRP Peers:2,
 
 R14#
 ```
+
+* Для обмена маршрутной информацией между HUB and SPOKE настроим протокол IBGP. R14 и R15 в офисе Москва будут выступать в роли Route Reflector. По IBGP будем отдавать только LAN сети:
+
+
+```
+R15
+
+R15#sh ru
+
+R15#sh run | s r b
+router bgp 1001
+ bgp router-id 15.15.15.15
+ bgp log-neighbor-changes
+ bgp default local-preference 200
+ network 140.100.0.0 mask 255.255.254.0
+ network 172.30.0.0 mask 255.255.255.128
+ network 192.168.0.0 mask 255.255.128.0
+ timers bgp 10 30
+ neighbor RR-DMVPN peer-group
+ neighbor RR-DMVPN remote-as 1001
+ neighbor RR-DMVPN update-source Tunnel1001
+ neighbor RR-DMVPN timers 10 30
+ neighbor RR-DMVPN route-reflector-client
+ neighbor RR-DMVPN next-hop-self
+ neighbor RR-DMVPN prefix-list ONLY-DMVPN-NET-OUT out
+ neighbor 10.10.11.1 remote-as 1001
+ neighbor 10.10.11.1 update-source Loopback0
+ neighbor 10.10.11.1 next-hop-self
+ neighbor 30.1.0.1 remote-as 301
+ neighbor 30.1.0.1 route-map rm_LOCAL_ONLY_OUT out
+ neighbor 172.30.0.2 peer-group RR-DMVPN
+ neighbor 172.30.0.3 peer-group RR-DMVPN
+R15#
+
+ip prefix-list ONLY-DMVPN-NET-OUT seq 10 permit 172.16.0.0/16 le 32
+ip prefix-list ONLY-DMVPN-NET-OUT seq 20 permit 192.168.0.0/17 le 32
+ip prefix-list ONLY-DMVPN-NET-OUT seq 30 permit 100.64.0.0/24 le 32
+```
+
+```
+R14:
+
+router bgp 1001
+ bgp router-id 14.14.14.14
+ bgp log-neighbor-changes
+ network 140.100.0.0 mask 255.255.254.0
+ network 172.30.0.128 mask 255.255.255.128
+ network 192.168.0.0 mask 255.255.128.0
+ timers bgp 10 30
+ neighbor RR-DMVPN-REZERV peer-group
+ neighbor RR-DMVPN-REZERV remote-as 1001
+ neighbor RR-DMVPN-REZERV update-source Tunnel1002
+ neighbor RR-DMVPN-REZERV timers 10 30
+ neighbor RR-DMVPN-REZERV route-reflector-client
+ neighbor RR-DMVPN-REZERV next-hop-self
+ neighbor RR-DMVPN-REZERV prefix-list ONLY-DMVPN-NET-OUT out
+ neighbor 10.10.11.2 remote-as 1001
+ neighbor 10.10.11.2 update-source Loopback0
+ neighbor 101.0.0.1 remote-as 101
+ neighbor 101.0.0.1 prefix-list OUT-ONLY-PREFIX-AS1001 out
+ neighbor 101.0.0.1 route-map rm_AS-PREPEND out
+ neighbor 172.30.0.130 peer-group RR-DMVPN-REZERV
+ neighbor 172.30.0.131 peer-group RR-DMVPN-REZERV
+R14#
+
+ip prefix-list ONLY-DMVPN-NET-OUT seq 10 permit 172.16.0.0/16 le 32
+ip prefix-list ONLY-DMVPN-NET-OUT seq 20 permit 192.168.0.0/17 le 32
+ip prefix-list ONLY-DMVPN-NET-OUT seq 30 permit 100.64.0.0/24 le 32
+```
+
+* Лабынтаги - SPOKE:
+
+```
+router bgp 1001
+ bgp log-neighbor-changes
+ network 100.64.0.0 mask 255.255.255.0
+ neighbor 172.30.0.1 remote-as 1001
+ neighbor 172.30.0.129 remote-as 1001
+!
+```
+
+* Чокурдах - SPOKE:
+
+```
+R28#sh run | s r b
+router bgp 1001
+ bgp log-neighbor-changes
+ network 172.16.30.0 mask 255.255.254.0
+ neighbor 172.30.0.1 remote-as 1001
+ neighbor 172.30.0.129 remote-as 1001
+R28#
+```
+
+Таким образом, таблица маршрутизации имеет следующий вид:
+```
+R14#sh ip bgp 
+BGP table version is 46, local router ID is 14.14.14.14
+     Network          Next Hop            Metric LocPrf Weight Path
+ r>i  0.0.0.0          10.10.11.2               0    200      0 301 i
+ r                     101.0.0.1                              0 101 i
+ *>i  20.0.0.0/24      10.10.11.2               0    200      0 301 520 2042 i
+ * i  100.64.0.0/24    172.30.0.2               0    100      0 i
+ *>i                   172.30.0.130             0    100      0 i
+ * i  140.100.0.0/23   10.10.11.2               0    200      0 i
+ *>                    0.0.0.0                  0         32768 i
+ * i  172.16.30.0/23   172.30.0.3               0    100      0 i
+ *>i                   172.30.0.131             0    100      0 i
+ *>i  172.30.0.0/25    10.10.11.2               0    200      0 i
+ *>   172.30.0.128/25  0.0.0.0                  0         32768 i
+ * i  192.168.0.0/17   10.10.11.2              21    200      0 i
+ *>                    10.0.0.9                21         32768 i
+R14#
+
+R15#sh ip bgp 
+BGP table version is 11, local router ID is 15.15.15.15
+     Network          Next Hop            Metric LocPrf Weight Path
+ *>   0.0.0.0          30.1.0.1                               0 301 i
+ *>   20.0.0.0/24      30.1.0.1                               0 301 520 2042 i
+ *>i  100.64.0.0/24    172.30.0.2               0    100      0 i
+ * i                   172.30.0.130             0    100      0 i
+ * i  140.100.0.0/23   10.10.11.1               0    100      0 i
+ *>                    0.0.0.0                  0         32768 i
+ *>i  172.16.30.0/23   172.30.0.3               0    100      0 i
+ * i                   172.30.0.131             0    100      0 i
+ *>   172.30.0.0/25    0.0.0.0                  0         32768 i
+ *>i  172.30.0.128/25  10.10.11.1               0    100      0 i
+ * i  192.168.0.0/17   10.0.0.9                21    100      0 i
+ *>                    10.0.0.13               21         32768 i
+R15#
+
+R27#sh ip bgp     
+BGP table version is 16, local router ID is 100.64.0.1
+     Network          Next Hop            Metric LocPrf Weight Path
+ *>   100.64.0.0/24    0.0.0.0                  0         32768 i
+ *>i  172.16.30.0/23   172.30.0.3               0    100      0 i
+ * i                   172.30.0.131             0    100      0 i
+ *>i  192.168.0.0/17   172.30.0.1              21    200      0 i
+ * i                   172.30.0.129            21    100      0 i
+R27#
+
+R28#sh ip bgp 
+BGP table version is 28, local router ID is 172.30.0.131
+     Network          Next Hop            Metric LocPrf Weight Path
+ *>i  100.64.0.0/24    172.30.0.2               0    100      0 i
+ * i                   172.30.0.130             0    100      0 i
+ *>   172.16.30.0/23   0.0.0.0                  0         32768 i
+ *>i  192.168.0.0/17   172.30.0.1              21    200      0 i
+ * i                   172.30.0.129            21    100      0 i
+R28#
+```
+
+В ходе проверки схема отрабатывает корректно. Резервирование работает в штатном режиме.

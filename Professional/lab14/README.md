@@ -140,3 +140,144 @@ R18#
 
 
 ![](ipsec1.png)
+
+#### Настроить DMVPN поверх IPSec между Москва и Чокурдах, Лабытнанги.
+
+```
+R15:
+crypto isakmp policy 2
+ encr 3des
+ hash md5
+ authentication pre-share
+ group 2 
+crypto isakmp key DMVPN-HUB address 0.0.0.0  
+
+crypto ipsec profile DMVPN_1
+ set transform-set DMVPN 
+
+interface Tunnel1001
+ description DMVPN
+ ip address 172.30.0.1 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp network-id 200
+ ip tcp adjust-mss 1360
+ tunnel source Ethernet0/2
+ tunnel mode gre multipoint
+ tunnel key 200
+ tunnel protection ipsec profile DMVPN_1
+
+```
+
+R14 аналогичная настройка.
+
+* Выполним настройку R27 Лабытнанги:
+
+```
+crypto isakmp policy 2
+ encr 3des
+ hash md5
+ authentication pre-share
+ group 2
+crypto isakmp key DMVPN-HUB address 0.0.0.0        
+crypto isakmp keepalive 20
+!
+!
+crypto ipsec transform-set DMVPN esp-3des esp-sha-hmac 
+ mode transport
+!
+crypto ipsec profile DMVPN_1
+ set transform-set DMVPN 
+!
+crypto ipsec profile DMVPN_2
+ set transform-set DMVPN 
+
+interface Tunnel1001
+ description DMVPN-TO-MSK-R15
+ ip address 172.30.0.2 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 30.1.0.2
+ ip nhrp map 172.30.0.1 30.1.0.2
+ ip nhrp network-id 200
+ ip nhrp nhs 172.30.0.1
+ ip tcp adjust-mss 1360
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 200
+ tunnel protection ipsec profile DMVPN_1
+!
+interface Tunnel1002
+ description DMVPN-TO-MSK-R14-REZERV
+ ip address 172.30.0.130 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 101.0.0.2
+ ip nhrp map 172.30.0.129 101.0.0.2
+ ip nhrp network-id 201
+ ip nhrp nhs 172.30.0.129
+ ip tcp adjust-mss 1360
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 201
+ tunnel protection ipsec profile DMVPN_2
+!
+
+```
+
+* Выполним настройку R28 Чокурдах:
+
+```
+crypto isakmp policy 2
+ encr 3des
+ hash md5
+ authentication pre-share
+ group 2
+crypto isakmp key DMVPN-HUB address 0.0.0.0        
+crypto isakmp keepalive 20
+!
+!
+crypto ipsec transform-set DMVPN esp-3des esp-sha-hmac 
+ mode transport
+!
+crypto ipsec profile DMVPN_1
+ set transform-set DMVPN 
+!
+crypto ipsec profile DMVPN_2
+ set transform-set DMVPN 
+!
+interface Tunnel1001
+ description DMVPN-TO-MSK-R14
+ ip address 172.30.0.3 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 30.1.0.2
+ ip nhrp map 172.30.0.1 30.1.0.2
+ ip nhrp network-id 200
+ ip nhrp nhs 172.30.0.1
+ ip tcp adjust-mss 1360
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+ tunnel key 200
+ tunnel protection ipsec profile DMVPN_1
+!
+interface Tunnel1002
+ description DMVPN-TO-MSK-R14-REZERV
+ ip address 172.30.0.131 255.255.255.128
+ no ip redirects
+ ip mtu 1400
+ ip nhrp map multicast 101.0.0.2
+ ip nhrp map 172.30.0.129 101.0.0.2
+ ip nhrp network-id 201
+ ip nhrp nhs 172.30.0.129
+ ip tcp adjust-mss 1360
+ tunnel source Ethernet0/1
+ tunnel mode gre multipoint
+ tunnel key 201
+ tunnel protection ipsec profile DMVPN_2
+
+```
+
+Пустим пинг с ПК Чокурдах до ПК в Лабытнанги и на R27 посмотрим как шифруются данные:
+
+![](dmvpn.png)
